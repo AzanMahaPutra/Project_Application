@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laporan Acara</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <button class="menu-btn" id="menuBtn">☰ Menu</button>
+
+  <div class="sidebar" id="sidebar">
+    <a href="index.html">Beranda</a>
+    <a href="tambahData.html">Tambah Data</a>
+    <a href="cariData.html">Cari Data</a>
+    <a href="laporanAcara.html">Laporan Acara</a>
+    <a href="#">Tentang</a>
+    <a href="#">Keluar</a>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+
+  <main style="padding: 20px;">
+    <h2>Laporan Acara</h2>
+
+    <div style="margin: 15px 0;">
+      <button id="tambahBtn">+ Tambah Acara</button>
+      <input type="text" id="searchInput" placeholder="Cari nama acara..." />
+    </div>
+
+    <!-- AREA TABEL -->
+    <div id="tableArea"></div>
+
+    <!-- FORM TAMBAH ACARA -->
+    <div id="formArea" style="display: none;">
+      <h3>Tambah Laporan Acara</h3>
+      <input type="text" id="namaAcara" placeholder="Nama Acara"><br>
+      <input type="date" id="tanggalAcara" placeholder="Tanggal Acara"><br>
+      <input type="text" id="penanggungJawab" placeholder="Penanggung Jawab"><br>
+      <input type="text" id="lokasi" placeholder="Lokasi Acara"><br>
+      <input type="number" id="jumlahPeserta" placeholder="Jumlah Peserta"><br>
+      <input type="text" id="pengeluaran" placeholder="Pengeluaran Konsumsi"><br><br>
+      <button id="submitAcara">Selesai</button>
+      <button id="cancelBtn">Kembali</button>
+    </div>
+  </main>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

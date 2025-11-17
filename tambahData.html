@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tambah Data</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Tombol Menu Sidebar -->
+  <button 
+    class="menu-btn" 
+    id="menuBtn" 
+    style="position: fixed; top: 15px; left: 15px; z-index: 1100;">
+    ☰ Menu
+  </button>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <a href="index.html">Beranda</a>
+    <a href="tambahData.html">Tambah Data</a>
+    <a href="cariData.html">Cari Data</a>
+    <a href="laporanAcara.html">Laporan Acara</a>
+    <a href="#">Tentang</a>
+    <a href="#">Keluar</a>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- Form 1 -->
+  <br><br>
+  <div id="form1">
+    <h2>Form Data Siswa</h2>
+    <input type="text" id="nama" placeholder="Nama Lengkap"><br>
+    <input type="text" id="nisn" placeholder="NISN"><br>
+    <input type="text" id="alamat" placeholder="Alamat"><br>
+    <button id="next1">Selanjutnya</button>
+  </div>
+
+  <!-- Form 2 -->
+  <div id="form2" style="display:none;">
+    <h2>Pilih Rencana</h2>
+    <button class="pilihan" data-type="kuliah">Kuliah</button>
+    <button class="pilihan" data-type="wirausaha">Wirausaha</button>
+    <button class="pilihan" data-type="kerja">Kerja</button>
+  </div>
+
+  <!-- Form Kuliah -->
+  <div id="kuliahForm" style="display:none;">
+    <h2>Form Kuliah</h2>
+    <label>Pilih Universitas:</label><br>
+    <select id="univType">
+      <option value="negeri">Negeri</option>
+      <option value="swasta">Swasta</option>
+    </select><br><br>
+    <input type="text" id="univName" placeholder="Universitas Pilihan"><br>
+    <input type="text" id="jurusan" placeholder="Jurusan"><br>
+    <input type="text" id="jenjang" placeholder="Jenjang"><br>
+    <button id="submitKuliah">Selesai</button>
+  </div>
+
+  <!-- Form Wirausaha -->
+  <div id="wirausahaForm" style="display:none;">
+    <h2>Form Wirausaha</h2>
+    <input type="text" id="bidangUsaha" placeholder="Bidang Usaha"><br>
+    <input type="text" id="usahaDibuat" placeholder="Usaha yang Akan Dibuat"><br>
+    <input type="text" id="jenisUsaha" placeholder="Jenis Usaha"><br>
+    <input type="text" id="rencanaMulai" placeholder="Rencana Mulai Usaha"><br>
+    <input type="text" id="alasanWirausaha" placeholder="Alasan Berwirausaha"><br>
+    <button id="submitWirausaha">Selesai</button>
+  </div>
+
+  <!-- Form Kerja -->
+  <div id="kerjaForm" style="display:none;">
+    <h2>Form Kerja</h2>
+    <input type="text" id="perusahaan" placeholder="Perusahaan"><br>
+    <input type="text" id="keterampilan" placeholder="Keterampilan yang Dimiliki"><br>
+    <input type="text" id="jabatan" placeholder="Jabatan yang Diinginkan"><br>
+    <input type="text" id="bidang" placeholder="Bidang yang Diinginkan"><br>
+    <input type="text" id="alasanKerja" placeholder="Alasan"><br>
+    <button id="submitKerja">Selesai</button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

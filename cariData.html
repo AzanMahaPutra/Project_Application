@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cari Data</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <button class="menu-btn" id="menuBtn">☰ Menu</button>
+
+  <div class="sidebar" id="sidebar">
+    <a href="index.html">Beranda</a>
+    <a href="tambahData.html">Tambah Data</a>
+    <a href="cariData.html">Cari Data</a>
+    <a href="laporanAcara.html">Laporan Acara</a>
+    <a href="#">Tentang</a>
+    <a href="#">Keluar</a>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <br><br>
+  <div id="mainContent">
+    <h2>Daftar Data Siswa</h2>
+
+    <div>
+      <label for="filterSelect">Filter Berdasarkan Rencana:</label>
+      <select id="filterSelect">
+        <option value="semua">Semua</option>
+        <option value="kuliah">Kuliah</option>
+        <option value="wirausaha">Wirausaha</option>
+        <option value="kerja">Kerja</option>
+      </select>
+      <button id="applyFilter">Terapkan Filter</button>
+      <button id="btnTambah">+ Tambah Data</button>
+    </div>
+
+    <br>
+
+    <!-- 🔍 Search Bar -->
+    <div>
+      <input type="text" id="searchInput" placeholder="Cari nama atau rencana..." />
+      <button id="searchBtn">Cari</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+
+    <br>
+
+    <!-- Daftar Data -->
+    <div id="dataList"></div>
+  </div>
+
+  <div id="detailContent" style="display:none;">
+    <h2>Detail Data</h2>
+    <div id="detailContainer"></div>
+    <br>
+    <button id="btnKembali">Kembali</button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

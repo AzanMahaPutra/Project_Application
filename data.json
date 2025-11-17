@@ -1,0 +1,60 @@
+[
+  {
+    "nama": "Azan Maha Putra",
+    "nisn": "94076335",
+    "alamat": "Kp.Keboncau",
+    "tipe": "kuliah",
+    "universitasType": "swasta",
+    "universitas": "Universitas Uniga",
+    "jurusan": "Fakultas Ilmu Komputer",
+    "jenjang": "S1"
+  },
+  {
+    "nama": "Muhammad Aldi Gustian",
+    "nisn": "9734427",
+    "alamat": "Pasirlangu",
+    "tipe": "wirausaha",
+    "bidangUsaha": "Perdagangan",
+    "usahaDibuat": "Warung",
+    "jenisUsaha": "Usaha Kecil",
+    "rencanaMulai": "27 Juli 2027",
+    "alasan": "Potensi Besar,Lokasi Strategis"
+  },
+  {
+    "nama": "Muhammad Afdal Saputra",
+    "nisn": "91596587",
+    "alamat": "Tugu Mukti",
+    "tipe": "kerja",
+    "perusahaan": "PT. Solusi Teknologi Indonesia",
+    "keterampilan": "Tentang Infromatika",
+    "jabatan": "Manajer Pemasaran Digital",
+    "bidang": "Teknologi Informasi & Digital",
+    "alasan": "keren"
+  },
+  {
+    "nama": "s",
+    "nisn": "s",
+    "alamat": "s",
+    "tipe": "kuliah",
+    "universitasType": "negeri",
+    "universitas": "",
+    "jurusan": "",
+    "jenjang": ""
+  },
+  {
+    "namaAcara": "Maulid",
+    "tanggalAcara": "2025-11-04",
+    "penanggungJawab": "rizal",
+    "lokasi": "lapang smkn1cisarua",
+    "jumlahPeserta": "674",
+    "pengeluaran": "4.100.000"
+  },
+  {
+    "namaAcara": "Maulid",
+    "tanggalAcara": "2025-11-04",
+    "penanggungJawab": "rizal",
+    "lokasi": "lapang smkn1cisarua",
+    "jumlahPeserta": "674",
+    "pengeluaran": "4.100.000"
+  }
+]
