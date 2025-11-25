@@ -32,29 +32,13 @@
     "alasan": "keren"
   },
   {
-    "nama": "s",
-    "nisn": "s",
-    "alamat": "s",
+    "nama": "Steven",
+    "nisn": "32176947",
+    "alamat": "Brooklyn",
     "tipe": "kuliah",
-    "universitasType": "negeri",
-    "universitas": "",
-    "jurusan": "",
-    "jenjang": ""
-  },
-  {
-    "namaAcara": "Maulid",
-    "tanggalAcara": "2025-11-04",
-    "penanggungJawab": "rizal",
-    "lokasi": "lapang smkn1cisarua",
-    "jumlahPeserta": "674",
-    "pengeluaran": "4.100.000"
-  },
-  {
-    "namaAcara": "Maulid",
-    "tanggalAcara": "2025-11-04",
-    "penanggungJawab": "rizal",
-    "lokasi": "lapang smkn1cisarua",
-    "jumlahPeserta": "674",
-    "pengeluaran": "4.100.000"
+    "universitasType": "swasta",
+    "universitas": "Harvard",
+    "jurusan": "Komputer",
+    "jenjang": "S2"
   }
 ]

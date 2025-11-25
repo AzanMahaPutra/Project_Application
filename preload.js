@@ -1,9 +1,15 @@
 const { contextBridge, ipcRenderer } = require('electron/renderer');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  onUpdateCounter: (callback) =>
-    ipcRenderer.on('update-counter', (_event, value) => callback(value)),
-  counterValue: (value) => ipcRenderer.send('counter-value', value),
+  // Data siswa
   saveData: (data) => ipcRenderer.invoke('save-data', data),
   loadData: () => ipcRenderer.invoke('load-data'),
+  updateData: (index, data) => ipcRenderer.invoke('update-data', index, data),
+  deleteData: (index) => ipcRenderer.invoke('delete-data', index),
+  
+  // Data acara
+  saveAcara: (acara) => ipcRenderer.invoke('save-acara', acara),
+  loadAcara: () => ipcRenderer.invoke('load-acara'),
+  updateAcara: (index, acara) => ipcRenderer.invoke('update-acara', index, acara),
+  deleteAcara: (index) => ipcRenderer.invoke('delete-acara', index),
 });

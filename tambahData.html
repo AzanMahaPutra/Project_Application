@@ -4,29 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tambah Data</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="tambahData.css">
 </head>
 <body>
-  <!-- Tombol Menu Sidebar -->
-  <button 
-    class="menu-btn" 
-    id="menuBtn" 
-    style="position: fixed; top: 15px; left: 15px; z-index: 1100;">
-    ☰ Menu
-  </button>
-
   <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <a href="index.html">Beranda</a>
     <a href="tambahData.html">Tambah Data</a>
     <a href="cariData.html">Cari Data</a>
     <a href="laporanAcara.html">Laporan Acara</a>
-    <a href="#">Tentang</a>
-    <a href="#">Keluar</a>
+    <a href="tentang.html">Tentang</a>
   </div>
 
   <!-- Overlay -->
   <div class="overlay" id="overlay"></div>
+
+  <div class="main-content">
+    <header class="header">
+      <h1>APLIKASI DATA SISWA KELAS 12</h1>
+      <p>Pendataan Kelas 12 Rencana Setelah Lulus · Kuliah | Kerja | Wirausaha</p>
+      <div class="logo"> 
+        <img src="asset/keperluan aplikasi data PBGTM.jpeg"> 
+      </div> 
+      <button class="menu-btn" id="menuBtn">☰ Menu</button>
+    </header>
+
 
   <!-- Form 1 -->
   <br><br>
@@ -81,6 +83,10 @@
     <input type="text" id="alasanKerja" placeholder="Alasan"><br>
     <button id="submitKerja">Selesai</button>
   </div>
+
+  <footer class="footer">
+      SMK NEGERI 1 CISARUA | TIM PBGTM
+  </footer>
 
   <script src="renderer.js"></script>
 </body>

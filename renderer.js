@@ -6,14 +6,20 @@ window.addEventListener("DOMContentLoaded", () => {
 
   if (menuBtn && sidebar && overlay) {
     function toggleSidebar() {
+      // toggle both class variants so it works with different CSS files
+      // some pages/styles use .open/.show, others use .active
+      sidebar.classList.toggle("open");
       sidebar.classList.toggle("active");
+      overlay.classList.toggle("show");
       overlay.classList.toggle("active");
+      // toggle visual state on the menu button as well
+      menuBtn.classList.toggle("active");
     }
 
     menuBtn.addEventListener("click", toggleSidebar);
     overlay.addEventListener("click", toggleSidebar);
   }
-});
+}); 
 
 // =================== CARI DATA ===================
 window.addEventListener("DOMContentLoaded", async () => {
@@ -25,27 +31,30 @@ window.addEventListener("DOMContentLoaded", async () => {
   const detailContainer = document.getElementById("detailContainer");
   const btnKembali = document.getElementById("btnKembali");
   const btnTambah = document.getElementById("btnTambah");
-
-  // 🟩 Tambahan elemen untuk fitur search
   const searchInput = document.getElementById("searchInput");
   const searchBtn = document.getElementById("searchBtn");
   const resetBtn = document.getElementById("resetBtn");
 
-  if (!filterSelect || !dataList) return; // kalau bukan di halaman ini, skip
+  if (!filterSelect || !dataList) return;
 
-  // buka halaman tambah data
+  let semuaData = [];
+  let dataTerkini = [];
+
   btnTambah.addEventListener("click", () => {
     window.location.href = "tambahData.html";
   });
 
-  // ambil data dari main process
-  const data = await window.electronAPI.loadData();
+  // Load data
+  semuaData = await window.electronAPI.loadData();
+  dataTerkini = [...semuaData];
 
   function tampilkanData(filter, search = "") {
-    dataList.innerHTML = "";
+    const existingRows = dataList.querySelectorAll('.data-row');
+    existingRows.forEach(row => row.remove());
 
-    // guard against records that don't have expected fields (e.g. acara entries)
-    const hasil = data.filter((d) => {
+    const hasil = semuaData.filter((d) => {
+      if (!d.nama) return false;
+      
       const cocokFilter = filter === "semua" || (d.tipe && d.tipe === filter);
       const namaLower = (d.nama || "").toString().toLowerCase();
       const tipeLower = (d.tipe || "").toString().toLowerCase();
@@ -54,32 +63,69 @@ window.addEventListener("DOMContentLoaded", async () => {
       return cocokFilter && cocokSearch;
     });
 
+    dataTerkini = hasil;
+
     if (hasil.length === 0) {
-      dataList.innerHTML = "<p>Tidak ada data ditemukan.</p>";
+      const noDataRow = document.createElement('div');
+      noDataRow.className = 'data-row';
+      noDataRow.innerHTML = `
+        <span colspan="6" style="grid-column: 1 / -1; text-align: center; padding: 20px;">
+          Tidak ada data ditemukan.
+        </span>
+      `;
+      dataList.appendChild(noDataRow);
       return;
     }
 
     hasil.forEach((item, index) => {
-      const div = document.createElement("div");
-      div.style.border = "1px solid #ccc";
-      div.style.padding = "10px";
-      div.style.marginBottom = "10px";
-      div.innerHTML = `
-        <b>${item.nama}</b><br>
-        NISN: ${item.nisn}<br>
-        Alamat: ${item.alamat}<br>
-        Pilihan: ${item.tipe}<br>
-        <button class="btnDetail" data-index="${index}">Detail</button>
+      const dataRow = document.createElement('div');
+      dataRow.className = 'data-row';
+      dataRow.innerHTML = `
+        <span>${item.nama || '-'}</span>
+        <span>${item.kelas || '12'}</span>
+        <span>${item.tipe || '-'}</span>
+        <span>${getKeterangan(item)}</span>
+        <div style="display: flex; gap: 5px;">
+          <button class="btn-detail" data-index="${index}">Detail</button>
+          <button class="btn-edit" data-index="${index}" style="background-color: #ffa500;">Edit</button>
+          <button class="btn-hapus" data-index="${index}" style="background-color: #ff4444;">Hapus</button>
+        </div>
       `;
-      dataList.appendChild(div);
+      dataList.appendChild(dataRow);
     });
 
-    document.querySelectorAll(".btnDetail").forEach((btn) => {
+    // Event listeners untuk tombol
+    document.querySelectorAll(".btn-detail").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const index = e.target.getAttribute("data-index");
-        tampilkanDetail(hasil[index]);
+        tampilkanDetail(dataTerkini[index]);
       });
     });
+
+    document.querySelectorAll(".btn-edit").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const index = e.target.getAttribute("data-index");
+        editData(dataTerkini[index], index);
+      });
+    });
+
+    document.querySelectorAll(".btn-hapus").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const index = e.target.getAttribute("data-index");
+        hapusData(index);
+      });
+    });
+  }
+
+  function getKeterangan(item) {
+    if (item.tipe === "kuliah") {
+      return `${item.universitas || '-'} - ${item.jurusan || '-'}`;
+    } else if (item.tipe === "wirausaha") {
+      return `${item.bidangUsaha || '-'} - ${item.usahaDibuat || '-'}`;
+    } else if (item.tipe === "kerja") {
+      return `${item.perusahaan || '-'} - ${item.jabatan || '-'}`;
+    }
+    return '-';
   }
 
   function tampilkanDetail(item) {
@@ -119,25 +165,46 @@ window.addEventListener("DOMContentLoaded", async () => {
     detailContainer.innerHTML = html;
   }
 
-  // tombol kembali
+  function editData(item, index) {
+    // Simpan data yang akan diedit di localStorage
+    localStorage.setItem('editData', JSON.stringify({
+      data: item,
+      index: index
+    }));
+    window.location.href = 'tambahData.html?edit=true';
+  }
+
+  async function hapusData(index) {
+    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+      try {
+        const result = await window.electronAPI.deleteData(index);
+        alert(result);
+        // Reload data
+        semuaData = await window.electronAPI.loadData();
+        tampilkanData(filterSelect.value, searchInput ? searchInput.value : "");
+      } catch (error) {
+        console.error('Error deleting data:', error);
+        alert('Gagal menghapus data!');
+      }
+    }
+  }
+
+  // Event listeners lainnya tetap sama
   btnKembali.addEventListener("click", () => {
     detailContent.style.display = "none";
     mainContent.style.display = "block";
   });
 
-  // filter
   applyFilter.addEventListener("click", () => {
     tampilkanData(filterSelect.value, searchInput ? searchInput.value : "");
   });
 
-  // 🟩 Tambahan event search
   if (searchBtn && searchInput) {
     searchBtn.addEventListener("click", () => {
       tampilkanData(filterSelect.value, searchInput.value);
     });
   }
 
-  // 🟩 Tambahan tombol reset pencarian
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
       searchInput.value = "";
@@ -146,212 +213,169 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // tampilkan semua saat awal
   tampilkanData("semua", "");
 });
 
 // ==========================
-// FUNGSI TAMBAH DATA (BARU)
+// LAPORAN ACARA (FIXED VERSION)
 // ==========================
-window.addEventListener("DOMContentLoaded", () => {
-  const form1 = document.getElementById("form1");
-  if (!form1) return; // kalau bukan halaman tambahData.html, stop biar gak error
+window.addEventListener("DOMContentLoaded", async () => {
+  const tambahBtn = document.getElementById("tambahBtn");
+  const formArea = document.getElementById("formArea");
+  const tableArea = document.getElementById("tableArea");
+  const searchInput = document.getElementById("searchInput");
+  const submitAcara = document.getElementById("submitAcara");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const dataListAcara = document.getElementById("dataListAcara");
 
-  const form2 = document.getElementById("form2");
-  const kuliahForm = document.getElementById("kuliahForm");
-  const wirausahaForm = document.getElementById("wirausahaForm");
-  const kerjaForm = document.getElementById("kerjaForm");
+  if (!tambahBtn || !tableArea) return;
 
-  let dataSiswa = {};
+  let semuaAcara = [];
+  let acaraTerkini = [];
 
-  // Tombol "Selanjutnya"
-  const next1Btn = document.getElementById("next1");
-  next1Btn.addEventListener("click", () => {
-    const nama = document.getElementById("nama").value.trim();
-    const nisn = document.getElementById("nisn").value.trim();
-    const alamat = document.getElementById("alamat").value.trim();
+  async function loadAcara() {
+    try {
+      console.log('Memuat data acara...');
+      semuaAcara = await window.electronAPI.loadAcara();
+      console.log('Data acara loaded:', semuaAcara);
+      acaraTerkini = [...semuaAcara];
+      tampilkanTabelAcara(semuaAcara);
+    } catch (err) {
+      console.error("Gagal memuat data acara:", err);
+      alert("Gagal memuat data acara: " + err.message);
+    }
+  }
 
-    if (!nama || !nisn || !alamat) {
-      alert("Semua field wajib diisi!");
+  function tampilkanTabelAcara(data) {
+    dataListAcara.innerHTML = "";
+    acaraTerkini = data;
+    
+    if (data.length === 0) {
+      const noDataRow = document.createElement('div');
+      noDataRow.className = 'data-row';
+      noDataRow.innerHTML = `
+        <span style="grid-column: 1 / -1; text-align: center; padding: 20px;">
+          Tidak ada laporan acara.
+        </span>
+      `;
+      dataListAcara.appendChild(noDataRow);
       return;
     }
 
-    dataSiswa = { nama, nisn, alamat };
-    form1.style.display = "none";
-    form2.style.display = "block";
-  });
-
-  // Pilihan Rencana (Kuliah / Wirausaha / Kerja)
-  document.querySelectorAll(".pilihan").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const type = btn.getAttribute("data-type");
-      form2.style.display = "none";
-
-      if (type === "kuliah") kuliahForm.style.display = "block";
-      if (type === "wirausaha") wirausahaForm.style.display = "block";
-      if (type === "kerja") kerjaForm.style.display = "block";
-
-      dataSiswa.tipe = type; // simpan tipe pilihan
+    data.forEach((acara, index) => {
+      const dataRow = document.createElement('div');
+      dataRow.className = 'data-row';
+      dataRow.innerHTML = `
+        <span>${acara.namaAcara || '-'}</span>
+        <span>${formatTanggal(acara.tanggalAcara) || '-'}</span>
+        <span>${acara.penanggungJawab || '-'}</span>
+        <span>${acara.lokasi || '-'}</span>
+        <span>${acara.jumlahPeserta || '0'}</span>
+        <span>Rp ${formatAngka(acara.pengeluaran) || '0'}</span>
+        <div class="btn-action">
+          <button class="btn-edit-acara" data-index="${index}">Edit</button>
+          <button class="btn-hapus-acara" data-index="${index}">Hapus</button>
+        </div>
+      `;
+      dataListAcara.appendChild(dataRow);
     });
-  });
 
-  // =======================
-  // FORM KULIAH
-  // =======================
-  const submitKuliah = document.getElementById("submitKuliah");
-  if (submitKuliah) {
-    submitKuliah.addEventListener("click", async () => {
-      const data = {
-        ...dataSiswa,
-        universitasType: document.getElementById("univType").value,
-        universitas: document.getElementById("univName").value,
-        jurusan: document.getElementById("jurusan").value,
-        jenjang: document.getElementById("jenjang").value,
-      };
-      await simpanData(data);
+    // Event listeners untuk tombol
+    document.querySelectorAll(".btn-edit-acara").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const index = e.target.getAttribute("data-index");
+        editAcara(acaraTerkini[index], index);
+      });
+    });
+
+    document.querySelectorAll(".btn-hapus-acara").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const index = e.target.getAttribute("data-index");
+        hapusAcara(index);
+      });
     });
   }
 
-  // =======================
-  // FORM WIRAUSAHA
-  // =======================
-  const submitWirausaha = document.getElementById("submitWirausaha");
-  if (submitWirausaha) {
-    submitWirausaha.addEventListener("click", async () => {
-      const data = {
-        ...dataSiswa,
-        bidangUsaha: document.getElementById("bidangUsaha").value,
-        usahaDibuat: document.getElementById("usahaDibuat").value,
-        jenisUsaha: document.getElementById("jenisUsaha").value,
-        rencanaMulai: document.getElementById("rencanaMulai").value,
-        alasan: document.getElementById("alasanWirausaha").value,
-      };
-      await simpanData(data);
-    });
+  function formatTanggal(tanggal) {
+    if (!tanggal) return '-';
+    return new Date(tanggal).toLocaleDateString('id-ID');
   }
 
-  // =======================
-  // FORM KERJA
-  // =======================
-  const submitKerja = document.getElementById("submitKerja");
-  if (submitKerja) {
-    submitKerja.addEventListener("click", async () => {
-      const data = {
-        ...dataSiswa,
-        perusahaan: document.getElementById("perusahaan").value,
-        keterampilan: document.getElementById("keterampilan").value,
-        jabatan: document.getElementById("jabatan").value,
-        bidang: document.getElementById("bidang").value,
-        alasan: document.getElementById("alasanKerja").value,
-      };
-      await simpanData(data);
-    });
+  function formatAngka(angka) {
+    if (!angka || angka === '0') return '0';
+    return parseInt(angka).toLocaleString('id-ID');
   }
 
-  // =======================
-  // FUNGSI SIMPAN DATA
-  // =======================
-  async function simpanData(data) {
+  function editAcara(acara, index) {
+    document.getElementById("namaAcara").value = acara.namaAcara || '';
+    document.getElementById("tanggalAcara").value = acara.tanggalAcara || '';
+    document.getElementById("penanggungJawab").value = acara.penanggungJawab || '';
+    document.getElementById("lokasi").value = acara.lokasi || '';
+    document.getElementById("jumlahPeserta").value = acara.jumlahPeserta || '';
+    document.getElementById("pengeluaran").value = acara.pengeluaran || '';
+    
+    submitAcara.textContent = 'Update Acara';
+    submitAcara.onclick = async () => {
+      await updateAcara(index);
+    };
+    
+    formArea.style.display = "block";
+    tableArea.style.display = "none";
+    tambahBtn.style.display = "none";
+  }
+
+  async function updateAcara(index) {
+    const namaAcara = document.getElementById("namaAcara").value.trim();
+    const tanggalAcara = document.getElementById("tanggalAcara").value;
+    const penanggungJawab = document.getElementById("penanggungJawab").value.trim();
+    const lokasi = document.getElementById("lokasi").value.trim();
+    const jumlahPeserta = document.getElementById("jumlahPeserta").value;
+    const pengeluaran = document.getElementById("pengeluaran").value.trim();
+
+    if (!namaAcara || !tanggalAcara || !penanggungJawab || !lokasi) {
+      alert("Harap isi semua field yang diperlukan!");
+      return;
+    }
+
+    const dataAcara = {
+      namaAcara,
+      tanggalAcara,
+      penanggungJawab,
+      lokasi,
+      jumlahPeserta: jumlahPeserta || "0",
+      pengeluaran: pengeluaran || "0",
+    };
+
     try {
-      const result = await window.electronAPI.saveData(data);
+      console.log('Updating acara:', dataAcara);
+      const result = await window.electronAPI.updateAcara(index, dataAcara);
       alert(result);
-      location.href = "cariData.html"; // langsung ke halaman data
+      formArea.style.display = "none";
+      tableArea.style.display = "block";
+      tambahBtn.style.display = "inline-block";
+      resetForm();
+      loadAcara();
     } catch (err) {
-      console.error(err);
-      alert("Gagal menyimpan data!");
-    }
-  }
-});
-
-// ==========================
-// LAPORAN ACARA
-// ==========================
-window.addEventListener("DOMContentLoaded", async () => {
-  const tambahBtn = document.getElementById("tambahBtn");
-  const formArea = document.getElementById("formArea");
-  const tableArea = document.getElementById("tableArea");
-  const searchInput = document.getElementById("searchInput");
-  const submitAcara = document.getElementById("submitAcara");
-  const cancelBtn = document.getElementById("cancelBtn");
-
-  if (!tambahBtn || !tableArea) return; // kalau bukan halaman laporanAcara, skip
-
-  let semuaAcara = [];
-
-  // ======= FUNGSI LOAD DATA =======
-  async function loadAcara() {
-    try {
-      semuaAcara = await window.electronAPI.loadData();
-      tampilkanTabel(semuaAcara);
-    } catch (err) {
-      console.error("Gagal memuat data:", err);
+      console.error('Error update acara:', err);
+      alert("Gagal mengupdate acara: " + err.message);
     }
   }
 
-  // ======= FUNGSI TAMPILKAN TABEL =======
-  function tampilkanTabel(data) {
-    tableArea.innerHTML = "";
-    if (data.length === 0) {
-      tableArea.innerHTML = '<p>Tidak ada laporan acara.</p>';
-      return;
+  async function hapusAcara(index) {
+    if (confirm('Apakah Anda yakin ingin menghapus acara ini?')) {
+      try {
+        const result = await window.electronAPI.deleteAcara(index);
+        alert(result);
+        loadAcara();
+      } catch (err) {
+        console.error('Error hapus acara:', err);
+        alert("Gagal menghapus acara: " + err.message);
+      }
     }
-
-    const table = document.createElement("table");
-    table.style.width = "100%";
-    table.style.borderCollapse = "collapse";
-    table.style.marginTop = "15px";
-
-    // Header
-    const thead = document.createElement("thead");
-    thead.innerHTML = `
-      <tr style="background-color:#f2f2f2; border-bottom:2px solid #444;">
-        <th style="border:1px solid #ccc; padding:10px;">No</th>
-        <th style="border:1px solid #ccc; padding:10px;">Nama Acara</th>
-        <th style="border:1px solid #ccc; padding:10px;">Tanggal</th>
-        <th style="border:1px solid #ccc; padding:10px;">Penanggung Jawab</th>
-        <th style="border:1px solid #ccc; padding:10px;">Lokasi</th>
-        <th style="border:1px solid #ccc; padding:10px;">Jumlah Peserta</th>
-        <th style="border:1px solid #ccc; padding:10px;">Pengeluaran</th>
-      </tr>
-    `;
-    table.appendChild(thead);
-
-    // Body
-    const tbody = document.createElement("tbody");
-    data.forEach((item, index) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td style="border:1px solid #ddd; padding:10px;">${index + 1}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.namaAcara || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.tanggalAcara || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.penanggungJawab || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.lokasi || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.jumlahPeserta || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">Rp ${item.pengeluaran || "0"}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    tableArea.appendChild(table);
   }
 
-  // ======= EVENT TOMBOL TAMBAH =======
-  tambahBtn.addEventListener("click", () => {
-    formArea.style.display = "block";
-    tableArea.style.display = "none";
-    tambahBtn.style.display = "none";
-  });
-
-  // ======= EVENT BATAL =======
-  cancelBtn.addEventListener("click", () => {
-    formArea.style.display = "none";
-    tableArea.style.display = "block";
-    tambahBtn.style.display = "inline-block";
-    resetForm();
-  });
-
-  // ======= EVENT SELESAI / SUBMIT =======
-  submitAcara.addEventListener("click", async () => {
+  // TAMBAH ACARA BARU
+  async function tambahAcaraBaru() {
     const namaAcara = document.getElementById("namaAcara").value.trim();
     const tanggalAcara = document.getElementById("tanggalAcara").value;
     const penanggungJawab = document.getElementById("penanggungJawab").value.trim();
@@ -359,8 +383,20 @@ window.addEventListener("DOMContentLoaded", async () => {
     const jumlahPeserta = document.getElementById("jumlahPeserta").value;
     const pengeluaran = document.getElementById("pengeluaran").value.trim();
 
-    if (!namaAcara || !tanggalAcara || !penanggungJawab || !lokasi) {
-      alert("Harap isi semua field yang diperlukan!");
+    if (!namaAcara) {
+      alert("Nama acara harus diisi!");
+      return;
+    }
+    if (!tanggalAcara) {
+      alert("Tanggal acara harus diisi!");
+      return;
+    }
+    if (!penanggungJawab) {
+      alert("Penanggung jawab harus diisi!");
+      return;
+    }
+    if (!lokasi) {
+      alert("Lokasi acara harus diisi!");
       return;
     }
 
@@ -369,129 +405,34 @@ window.addEventListener("DOMContentLoaded", async () => {
       tanggalAcara,
       penanggungJawab,
       lokasi,
-      jumlahPeserta,
-      pengeluaran,
+      jumlahPeserta: jumlahPeserta || "0",
+      pengeluaran: pengeluaran || "0",
     };
 
     try {
-      await window.electronAPI.saveData(dataAcara);
-      alert("Acara berhasil ditambahkan!");
+      console.log('Menyimpan acara baru:', dataAcara);
+      const result = await window.electronAPI.saveAcara(dataAcara);
+      alert(result);
       formArea.style.display = "none";
       tableArea.style.display = "block";
       tambahBtn.style.display = "inline-block";
       resetForm();
       loadAcara();
     } catch (err) {
-      console.error(err);
-      alert("Gagal menyimpan acara!");
-    }
-  });
-
-  // ======= EVENT SEARCH =======
-  if (searchInput) {
-    searchInput.addEventListener("input", (e) => {
-      const keyword = e.target.value.toLowerCase();
-      const filtered = semuaAcara.filter(
-        (item) =>
-          (item.namaAcara || "").toLowerCase().includes(keyword) ||
-          (item.penanggungJawab || "").toLowerCase().includes(keyword) ||
-          (item.lokasi || "").toLowerCase().includes(keyword)
-      );
-      tampilkanTabel(filtered);
-    });
-  }
-
-  // ======= RESET FORM =======
-  function resetForm() {
-    document.getElementById("namaAcara").value = "";
-    document.getElementById("tanggalAcara").value = "";
-    document.getElementById("penanggungJawab").value = "";
-    document.getElementById("lokasi").value = "";
-    document.getElementById("jumlahPeserta").value = "";
-    document.getElementById("pengeluaran").value = "";
-  }
-
-  // ======= MULAI =======
-  loadAcara();
-});
-
-window.addEventListener("DOMContentLoaded", async () => {
-  const tambahBtn = document.getElementById("tambahBtn");
-  const formArea = document.getElementById("formArea");
-  const tableArea = document.getElementById("tableArea");
-  const searchInput = document.getElementById("searchInput");
-  const submitAcara = document.getElementById("submitAcara");
-  const cancelBtn = document.getElementById("cancelBtn");
-
-  if (!tambahBtn || !tableArea) return; // kalau bukan halaman laporanAcara, skip
-
-  let semuaAcara = [];
-
-  // ======= FUNGSI LOAD DATA =======
-  async function loadAcara() {
-    try {
-      semuaAcara = await window.electronAPI.loadData();
-      tampilkanTabel(semuaAcara);
-    } catch (err) {
-      console.error("Gagal memuat data:", err);
+      console.error('Error DETAIL save acara:', err);
+      alert("Gagal menyimpan acara: " + err.message);
     }
   }
 
-  // ======= FUNGSI TAMPILKAN TABEL =======
-  function tampilkanTabel(data) {
-    tableArea.innerHTML = "";
-    if (data.length === 0) {
-      tableArea.innerHTML = '<p>Tidak ada laporan acara.</p>';
-      return;
-    }
-
-    const table = document.createElement("table");
-    table.style.width = "100%";
-    table.style.borderCollapse = "collapse";
-    table.style.marginTop = "15px";
-
-    // Header
-    const thead = document.createElement("thead");
-    thead.innerHTML = `
-      <tr style="background-color:#f2f2f2; border-bottom:2px solid #444;">
-        <th style="border:1px solid #ccc; padding:10px;">No</th>
-        <th style="border:1px solid #ccc; padding:10px;">Nama Acara</th>
-        <th style="border:1px solid #ccc; padding:10px;">Tanggal</th>
-        <th style="border:1px solid #ccc; padding:10px;">Penanggung Jawab</th>
-        <th style="border:1px solid #ccc; padding:10px;">Lokasi</th>
-        <th style="border:1px solid #ccc; padding:10px;">Jumlah Peserta</th>
-        <th style="border:1px solid #ccc; padding:10px;">Pengeluaran</th>
-      </tr>
-    `;
-    table.appendChild(thead);
-
-    // Body
-    const tbody = document.createElement("tbody");
-    data.forEach((item, index) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td style="border:1px solid #ddd; padding:10px;">${index + 1}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.namaAcara || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.tanggalAcara || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.penanggungJawab || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.lokasi || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">${item.jumlahPeserta || "-"}</td>
-        <td style="border:1px solid #ddd; padding:10px;">Rp ${item.pengeluaran || "0"}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    tableArea.appendChild(table);
-  }
-
-  // ======= EVENT TOMBOL TAMBAH =======
   tambahBtn.addEventListener("click", () => {
+    resetForm();
+    submitAcara.textContent = 'Selesai';
+    submitAcara.onclick = tambahAcaraBaru;
     formArea.style.display = "block";
     tableArea.style.display = "none";
     tambahBtn.style.display = "none";
   });
 
-  // ======= EVENT BATAL =======
   cancelBtn.addEventListener("click", () => {
     formArea.style.display = "none";
     tableArea.style.display = "block";
@@ -499,58 +440,19 @@ window.addEventListener("DOMContentLoaded", async () => {
     resetForm();
   });
 
-  // ======= EVENT SELESAI / SUBMIT =======
-  submitAcara.addEventListener("click", async () => {
-    const namaAcara = document.getElementById("namaAcara").value.trim();
-    const tanggalAcara = document.getElementById("tanggalAcara").value;
-    const penanggungJawab = document.getElementById("penanggungJawab").value.trim();
-    const lokasi = document.getElementById("lokasi").value.trim();
-    const jumlahPeserta = document.getElementById("jumlahPeserta").value;
-    const pengeluaran = document.getElementById("pengeluaran").value.trim();
-
-    if (!namaAcara || !tanggalAcara || !penanggungJawab || !lokasi) {
-      alert("Harap isi semua field yang diperlukan!");
-      return;
-    }
-
-    const dataAcara = {
-      namaAcara,
-      tanggalAcara,
-      penanggungJawab,
-      lokasi,
-      jumlahPeserta,
-      pengeluaran,
-    };
-
-    try {
-      await window.electronAPI.saveData(dataAcara);
-      alert("Acara berhasil ditambahkan!");
-      formArea.style.display = "none";
-      tableArea.style.display = "block";
-      tambahBtn.style.display = "inline-block";
-      resetForm();
-      loadAcara();
-    } catch (err) {
-      console.error(err);
-      alert("Gagal menyimpan acara!");
-    }
-  });
-
-  // ======= EVENT SEARCH =======
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       const keyword = e.target.value.toLowerCase();
       const filtered = semuaAcara.filter(
-        (item) =>
-          (item.namaAcara || "").toLowerCase().includes(keyword) ||
-          (item.penanggungJawab || "").toLowerCase().includes(keyword) ||
-          (item.lokasi || "").toLowerCase().includes(keyword)
+        (acara) =>
+          (acara.namaAcara || "").toLowerCase().includes(keyword) ||
+          (acara.penanggungJawab || "").toLowerCase().includes(keyword) ||
+          (acara.lokasi || "").toLowerCase().includes(keyword)
       );
-      tampilkanTabel(filtered);
+      tampilkanTabelAcara(filtered);
     });
   }
 
-  // ======= RESET FORM =======
   function resetForm() {
     document.getElementById("namaAcara").value = "";
     document.getElementById("tanggalAcara").value = "";
@@ -558,8 +460,33 @@ window.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("lokasi").value = "";
     document.getElementById("jumlahPeserta").value = "";
     document.getElementById("pengeluaran").value = "";
+    submitAcara.textContent = 'Selesai';
+    submitAcara.onclick = tambahAcaraBaru;
   }
 
-  // ======= MULAI =======
+  // Load data saat pertama kali
   loadAcara();
+});
+
+// ==== HALAMAN TENTANG ====
+document.addEventListener("DOMContentLoaded", () => {
+  const pembuatBtn = document.getElementById("btnPembuat");
+  const aplikasiBtn = document.getElementById("btnAplikasi");
+  const pembuatBox = document.getElementById("contentPembuat");
+  const aplikasiBox = document.getElementById("contentAplikasi");
+
+  // Pastikan hanya berjalan di tentang.html
+  if (pembuatBtn && aplikasiBtn) {
+
+    pembuatBtn.addEventListener("click", () => {
+      pembuatBox.style.display = "block";
+      aplikasiBox.style.display = "none";
+    });
+
+    aplikasiBtn.addEventListener("click", () => {
+      aplikasiBox.style.display = "block";
+      pembuatBox.style.display = "none";
+    });
+    
+  }
 });
