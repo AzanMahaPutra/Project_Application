@@ -11,6 +11,18 @@
 body {
   font-family: Poppins, sans-serif;
   background-color: #dff3ff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
 }
 
 /* Tombol Menu */
@@ -145,7 +157,8 @@ header .logo img {
 #applyFilter,
 #btnTambah,
 #searchBtn,
-#resetBtn {
+#resetBtn,
+#btnExport {
   padding: 10px 14px;
   border: none;
   border-radius: 10px;
@@ -153,22 +166,28 @@ header .logo img {
   color: white;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
 }
 
 #applyFilter:hover,
 #btnTambah:hover,
 #searchBtn:hover,
-#resetBtn:hover {
+#resetBtn:hover,
+#btnExport:hover {
+  background-color: #3e9fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(6, 97, 193, 0.2);
+}
+
+/* Tombol Tambah Data dan Export warna biru */
+#btnTambah,
+#btnExport {
   background-color: #3e9fff;
 }
 
-/* Tombol Tambah Data warna hijau */
-#btnTambah {
-  background-color: #3e9fff;
-}
-
-#btnTambah:hover {
-  background-color: #3e9fff;
+#btnTambah:hover,
+#btnExport:hover {
+  background-color: #2a8dd8;
 }
 
 /* ================================
@@ -282,6 +301,161 @@ header .logo img {
   }
 }
 
+/* ================================
+   EDIT FORM STYLING
+=================================== */
+
+#editForm {
+  margin: 40px 60px;
+  padding: 30px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+#editForm h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #003d8a;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+#editForm h3 {
+  color: #0061c1;
+  font-size: 18px;
+  margin-top: 25px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  border-bottom: 2px solid #6aa6ff;
+  padding-bottom: 10px;
+}
+
+#editForm h4 {
+  color: #003d8a;
+  font-size: 16px;
+  margin-top: 15px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+#editForm label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #003d8a;
+  font-size: 14px;
+}
+
+#editForm input[type="text"],
+#editForm input[type="email"],
+#editForm input[type="number"],
+#editForm select,
+#editForm textarea {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 15px;
+  border: 1px solid #bcd3ff;
+  border-radius: 10px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+#editForm input[type="text"]:focus,
+#editForm input[type="email"]:focus,
+#editForm input[type="number"]:focus,
+#editForm select:focus,
+#editForm textarea:focus {
+  border-color: #0061c1;
+  box-shadow: 0 0 8px rgba(6, 97, 193, 0.15);
+}
+
+#editForm textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+#editForm select {
+  cursor: pointer;
+  background-color: white;
+}
+
+/* Container untuk field dinamis */
+#editKuliahFields,
+#editWirausahaFields,
+#editKerjaFields {
+  background: #f0f7ff;
+  padding: 18px;
+  border-radius: 12px;
+  border-left: 4px solid #6aa6ff;
+  margin-bottom: 20px;
+}
+
+/* Tombol Update dan Cancel */
+#editForm .button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+#btnUpdate,
+#btnCancelEdit {
+  flex: 1;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+#btnUpdate {
+  background-color: #0061c1;
+  color: white;
+}
+
+#btnUpdate:hover {
+  background-color: #3e9fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(6, 97, 193, 0.2);
+}
+
+#btnCancelEdit {
+  background-color: #d1e0ff;
+  color: #003d8a;
+}
+
+#btnCancelEdit:hover {
+  background-color: #bcd3ff;
+  transform: translateY(-2px);
+}
+
+/* ================================
+   RESPONSIVE EDIT FORM
+=================================== */
+
+@media (max-width: 768px) {
+  #editForm {
+    margin: 20px;
+    padding: 20px;
+  }
+
+  #editForm h2 {
+    font-size: 22px;
+  }
+
+  #editForm h3 {
+    font-size: 16px;
+  }
+
+  #editForm .button-group {
+    flex-direction: column;
+  }
+}
+
 /* Footer */
 .footer {
   width: 100%;
@@ -289,5 +463,6 @@ header .logo img {
   padding: 15px 0;
   background: #9dc7f0;
   font-weight: 600;
-  margin-top: 40px;
+  margin-top: auto;
+  flex-shrink: 0;
 }

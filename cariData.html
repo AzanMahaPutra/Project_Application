@@ -21,17 +21,19 @@
   <div class="overlay" id="overlay"></div>
   <button class="menu-btn" id="menuBtn">☰ Menu</button>
 
-  <!-- HEADER -->
-  <header class="header">
-    <h1>APLIKASI DATA SISWA KELAS 12</h1>
-    <p>Pendataan Kelas 12 — Rencana Setelah Lulus</p>
-    <div class="logo"> 
-    <img src="asset/keperluan aplikasi data PBGTM.jpeg"> 
-   </div> 
-  </header>
+  <div class="main-content">
 
-  <!-- MAIN CONTENT -->
-  <div id="mainContent">
+    <!-- HEADER -->
+    <header class="header">
+      <h1>APLIKASI DATA SISWA KELAS 12</h1>
+      <p>Pendataan Kelas 12 — Rencana Setelah Lulus</p>
+      <div class="logo"> 
+      <img src="asset/keperluan aplikasi data PBGTM.jpeg"> 
+     </div> 
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div id="mainContent">
 
     <h2>Daftar Data Siswa</h2>
 
@@ -47,6 +49,7 @@
 
       <button id="applyFilter">Terapkan</button>
       <button id="btnTambah">+ Tambah Data</button>
+      <button id="btnExport">📊 Export Excel</button>
     </div>
 
     <!-- SEARCH -->
@@ -78,9 +81,69 @@
     <button id="btnKembali">Kembali</button>
   </div>
 
+  <!-- FORM EDIT DATA -->
+<div id="editForm" style="display:none;">
+  <h2>Edit Data Siswa</h2>
+
+  <h3>📋 Data Dasar Siswa</h3>
+  <input type="text" id="editNama" placeholder="Nama Lengkap"><br>
+  <input type="text" id="editNisn" placeholder="NISN"><br>
+  <input type="text" id="editAlamat" placeholder="Alamat"><br>
+
+  <h3>🎯 Rencana & Detail</h3>
+  <label for="editRencana">Pilih Rencana:</label>
+  <select id="editRencana">
+    <option value="kuliah">Kuliah</option>
+    <option value="wirausaha">Wirausaha</option>
+    <option value="kerja">Kerja</option>
+  </select>
+
+  <!-- Data Kuliah -->
+  <div id="editKuliahFields" style="display:none;">
+    <h4>🎓 Detail Pendidikan</h4>
+    <label for="editUnivType">Tipe Universitas:</label>
+    <select id="editUnivType">
+      <option value="negeri">Negeri</option>
+      <option value="swasta">Swasta</option>
+    </select>
+    <input type="text" id="editUnivName" placeholder="Nama Universitas"><br>
+    <input type="text" id="editJurusan" placeholder="Jurusan"><br>
+    <input type="text" id="editJenjang" placeholder="Jenjang (S1, S2, dll)"><br>
+  </div>
+
+  <!-- Data Wirausaha -->
+  <div id="editWirausahaFields" style="display:none;">
+    <h4>💼 Detail Wirausaha</h4>
+    <input type="text" id="editBidangUsaha" placeholder="Bidang Usaha"><br>
+    <input type="text" id="editUsahaDibuat" placeholder="Usaha yang Akan Dibuat"><br>
+    <input type="text" id="editJenisUsaha" placeholder="Jenis Usaha"><br>
+    <input type="text" id="editRencanaMulai" placeholder="Rencana Mulai Usaha"><br>
+    <label for="editAlasanWirausaha">Alasan Berwirausaha:</label>
+    <textarea id="editAlasanWirausaha" placeholder="Jelaskan alasan Anda memilih wirausaha"></textarea>
+  </div>
+
+  <!-- Data Kerja -->
+  <div id="editKerjaFields" style="display:none;">
+    <h4>💻 Detail Pekerjaan</h4>
+    <input type="text" id="editPerusahaan" placeholder="Perusahaan yang Dituju"><br>
+    <input type="text" id="editKeterampilan" placeholder="Keterampilan yang Dimiliki"><br>
+    <input type="text" id="editJabatan" placeholder="Jabatan yang Diinginkan"><br>
+    <input type="text" id="editBidang" placeholder="Bidang yang Diinginkan"><br>
+    <label for="editAlasanKerja">Alasan Memilih Pekerjaan:</label>
+    <textarea id="editAlasanKerja" placeholder="Jelaskan alasan Anda memilih pekerjaan ini"></textarea>
+  </div>
+
+  <div class="button-group">
+    <button id="btnUpdate">✓ Simpan Perubahan</button>
+    <button id="btnCancelEdit">✕ Kembali</button>
+  </div>
+</div>
+
     <footer class="footer">
       SMK NEGERI 1 CISARUA | TIM PBGTM
     </footer>
+
+  </div>
 
   <script src="renderer.js"></script>
 </body>

@@ -32,13 +32,14 @@
     "alasan": "keren"
   },
   {
-    "nama": "Steven",
-    "nisn": "32176947",
-    "alamat": "Brooklyn",
-    "tipe": "kuliah",
-    "universitasType": "swasta",
-    "universitas": "Harvard",
-    "jurusan": "Komputer",
-    "jenjang": "S2"
+    "nama": "tes hapus1",
+    "nisn": "1",
+    "alamat": "1",
+    "tipe": "kerja",
+    "perusahaan": "1",
+    "keterampilan": "1",
+    "jabatan": "1",
+    "bidang": "1",
+    "alasan": "1"
   }
 ]

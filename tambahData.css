@@ -5,7 +5,17 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  background: #e7f5fb; /* warna biru muda background */
+  background: #e7f5fb;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
 }
 
 /* --------------------------
@@ -45,6 +55,12 @@ header .logo img {
 /* --------------------------
    FORM CONTAINER
 --------------------------- */
+.form-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 #form1, #form2, #kuliahForm, #wirausahaForm, #kerjaForm {
   width: 60%;
   background: white;
@@ -243,5 +259,6 @@ button:hover {
   padding: 15px 0;
   background: #9dc7f0;
   font-weight: 600;
-  margin-top: 40px;
+  margin-top: auto;
+  flex-shrink: 0;
 }

@@ -76,6 +76,50 @@ ipcMain.handle('load-data', async () => {
   }
 });
 
+// Handler untuk update data siswa
+ipcMain.handle('update-data', async (event, index, updatedData) => {
+  try {
+    ensureDataFiles();
+    let existingData = [];
+    const content = fs.readFileSync(dataPath, 'utf8');
+    existingData = content ? JSON.parse(content) : [];
+
+    if (index >= 0 && index < existingData.length) {
+      existingData[index] = { ...existingData[index], ...updatedData };
+      fs.writeFileSync(dataPath, JSON.stringify(existingData, null, 2));
+      console.log('Data berhasil diupdate:', updatedData);
+      return 'Data berhasil diupdate!';
+    } else {
+      throw new Error('Index tidak valid');
+    }
+  } catch (error) {
+    console.error('Error updating data:', error);
+    throw new Error('Gagal mengupdate data: ' + error.message);
+  }
+});
+
+// Handler untuk hapus data siswa
+ipcMain.handle('delete-data', async (event, index) => {
+  try {
+    ensureDataFiles();
+    let existingData = [];
+    const content = fs.readFileSync(dataPath, 'utf8');
+    existingData = content ? JSON.parse(content) : [];
+
+    if (index >= 0 && index < existingData.length) {
+      existingData.splice(index, 1);
+      fs.writeFileSync(dataPath, JSON.stringify(existingData, null, 2));
+      console.log('Data berhasil dihapus dari index:', index);
+      return 'Data berhasil dihapus!';
+    } else {
+      throw new Error('Index tidak valid');
+    }
+  } catch (error) {
+    console.error('Error deleting data:', error);
+    throw new Error('Gagal menghapus data: ' + error.message);
+  }
+});
+
 // Handler untuk data acara - PERBAIKAN BESAR DI SINI
 ipcMain.handle('save-acara', async (event, newAcara) => {
   try {

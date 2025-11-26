@@ -4,109 +4,10 @@
   <meta charset="UTF-8"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
   <title>Laporan Acara</title> 
-  <link rel="stylesheet" href="laporanAcara.css"> 
-  <style>
-    /* Tambahan style untuk memperbaiki layout */
-    .container {
-      margin: 20px 60px;
-      padding: 20px;
-      background: white;
-      border-radius: 18px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    
-    .filter-box {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    
-    #tambahBtn {
-      padding: 10px 14px;
-      border: none;
-      border-radius: 10px;
-      background-color: #3e9fff;
-      color: white;
-      cursor: pointer;
-    }
-    
-    #searchInput {
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid #bcd3ff;
-      outline: none;
-      font-size: 14px;
-      min-width: 250px;
-    }
-    
-    .data-header {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1fr 1fr 120px;
-      background-color: #6aa6ff;
-      padding: 12px 18px;
-      font-weight: 600;
-      color: white;
-      font-size: 14px;
-      border-radius: 8px 8px 0 0;
-    }
-    
-    .data-row {
-      display: grid;
-      grid-template-columns: 2fr 1fr 1.5fr 1.5fr 1fr 1fr 120px;
-      padding: 12px 18px;
-      background-color: #f5faff;
-      border-bottom: 1px solid #d7e9ff;
-      font-size: 14px;
-      align-items: center;
-    }
-    
-    .data-row:nth-child(even) {
-      background-color: #e8f3ff;
-    }
-    
-    .btn-action {
-      display: flex;
-      gap: 5px;
-    }
-    
-    .btn-edit-acara, .btn-hapus-acara {
-      padding: 6px 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 12px;
-      color: white;
-    }
-    
-    .btn-edit-acara {
-      background-color: #ffa500;
-    }
-    
-    .btn-hapus-acara {
-      background-color: #ff4444;
-    }
-    
-    .form-input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #bcd3ff;
-      margin-bottom: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="laporanAcara.css">
 </head> 
 <body>
-  <header> 
-    <h1>APLIKASI DATA SISWA KELAS 12</h1> 
-    <p>Pendataan Kelas 12 Rencana Setelah Lulus - Kuliah | Kerja | Wirausaha</p> 
-    <div class="logo"> 
-      <img src="asset/keperluan aplikasi data PBGTM.jpeg"> 
-    </div> 
-  </header> 
-  
-  <button class="menu-btn" id="menuBtn">☰ Menu</button> 
+  <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar"> 
     <a href="index.html">Beranda</a> 
     <a href="tambahData.html">Tambah Data</a> 
@@ -114,52 +15,71 @@
     <a href="laporanAcara.html">Laporan Acara</a> 
     <a href="tentang.html">Tentang</a> 
   </div> 
-  <div class="overlay" id="overlay"></div> 
-  
-  <div class="container">
-    <h2 style="text-align: center; font-size: 28px; margin-bottom: 20px; font-weight: 600; color: #003d8a;">Laporan Acara</h2> 
-    
-    <div class="filter-box">
-      <button id="tambahBtn">+ Tambah Acara</button>
-      <input type="text" id="searchInput" placeholder="Cari nama acara...">
-    </div>
-    
-    <!-- AREA TABEL -->
-    <div id="tableArea">
-      <div class="data-header">
-        <span>Nama Acara</span>
-        <span>Tanggal</span>
-        <span>Penanggung Jawab</span>
-        <span>Lokasi</span>
-        <span>Jumlah Peserta</span>
-        <span>Pengeluaran</span>
-        <span>Aksi</span>
-      </div>
-      <div id="dataListAcara">
-        <!-- Data akan dimuat di sini -->
-      </div>
-    </div>
-    
-    <!-- FORM TAMBAH ACARA -->
-    <div id="formArea" style="display: none; margin-top: 20px; padding: 20px; background: #e9f4ff; border-radius: 12px;">
-      <h3 style="margin-bottom: 15px; color: #003d8a;">Tambah Laporan Acara</h3>
-      <input type="text" id="namaAcara" placeholder="Nama Acara" class="form-input">
-      <input type="date" id="tanggalAcara" class="form-input">
-      <input type="text" id="penanggungJawab" placeholder="Penanggung Jawab" class="form-input">
-      <input type="text" id="lokasi" placeholder="Lokasi Acara" class="form-input">
-      <input type="number" id="jumlahPeserta" placeholder="Jumlah Peserta" class="form-input">
-      <input type="text" id="pengeluaran" placeholder="Pengeluaran Konsumsi" class="form-input">
-      
-      <div style="display: flex; gap: 10px; margin-top: 15px;">
-        <button id="submitAcara" style="padding: 10px 14px; border: none; border-radius: 10px; background-color: #3e9fff; color: white; cursor: pointer;">Selesai</button>
-        <button id="cancelBtn" style="padding: 10px 14px; border: none; border-radius: 10px; background-color: #6c757d; color: white; cursor: pointer;">Kembali</button>
-      </div>
-    </div>
-  </div>
 
-  <footer class="footer">
-    SMK NEGERI 1 CISARUA | TIM PBGTM
-  </footer>
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay"></div>
+
+  <div class="main-content">
+    <!-- HEADER -->
+    <header class="header"> 
+      <h1>APLIKASI DATA SISWA KELAS 12</h1> 
+      <p>Pendataan Kelas 12 Rencana Setelah Lulus - Kuliah | Kerja | Wirausaha</p> 
+      <div class="logo"> 
+        <img src="asset/keperluan aplikasi data PBGTM.jpeg"> 
+      </div>
+      <button class="menu-btn" id="menuBtn">☰ Menu</button> 
+    </header> 
+    
+    <!-- CONTENT WRAPPER -->
+    <div class="content-wrapper">
+      <div class="container">
+        <h2>Laporan Acara</h2> 
+        
+        <div class="filter-box">
+          <button id="tambahBtn">+ Tambah Acara</button>
+          <input type="text" id="searchInput" placeholder="Cari nama acara...">
+          <button id="btnExportAcara">📊 Export Excel</button>
+        </div>
+        
+        <!-- AREA TABEL -->
+        <div id="tableArea">
+          <div class="data-header">
+            <span>Nama Acara</span>
+            <span>Tanggal</span>
+            <span>Penanggung Jawab</span>
+            <span>Lokasi</span>
+            <span>Jumlah Peserta</span>
+            <span>Pengeluaran</span>
+            <span>Aksi</span>
+          </div>
+          <div id="dataListAcara">
+            <!-- Data akan dimuat di sini -->
+          </div>
+        </div>
+        
+        <!-- FORM TAMBAH ACARA -->
+        <div id="formArea" style="display: none;">
+          <h3>Tambah Laporan Acara</h3>
+          <input type="text" id="namaAcara" placeholder="Nama Acara" class="form-input">
+          <input type="date" id="tanggalAcara" class="form-input">
+          <input type="text" id="penanggungJawab" placeholder="Penanggung Jawab" class="form-input">
+          <input type="text" id="lokasi" placeholder="Lokasi Acara" class="form-input">
+          <input type="number" id="jumlahPeserta" placeholder="Jumlah Peserta" class="form-input">
+          <input type="text" id="pengeluaran" placeholder="Pengeluaran Konsumsi" class="form-input">
+          
+          <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button id="submitAcara" style="padding: 10px 14px; border: none; border-radius: 10px; background-color: #3e9fff; color: white; cursor: pointer;">Selesai</button>
+            <button id="cancelBtn" style="padding: 10px 14px; border: none; border-radius: 10px; background-color: #6c757d; color: white; cursor: pointer;">Kembali</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      SMK NEGERI 1 CISARUA | TIM PBGTM
+    </footer>
+  </div>
 
   <script src="renderer.js"></script> 
 </body>
