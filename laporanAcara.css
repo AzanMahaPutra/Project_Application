@@ -136,6 +136,24 @@ h2 {
   align-items: center;
 }
 
+/* Unified filter styles for selects and inputs inside .filter-box */
+.filter-box select,
+.filter-box input {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #bcd3ff;
+  outline: none;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.filter-box select:focus,
+.filter-box input:focus {
+  border-color: #0061c1;
+  box-shadow: 0 0 8px rgba(6, 97, 193, 0.08);
+}
+
 #tambahBtn {
   padding: 10px 14px;
   border: none;
@@ -148,11 +166,13 @@ h2 {
 }
 
 #tambahBtn:hover,
-#btnExportAcara:hover {
+#btnExportAcara:hover,
+#btnImportAcara:hover {
   background-color: #2a8dd8;
 }
 
-#btnExportAcara {
+#btnExportAcara,
+#btnImportAcara {
   padding: 10px 14px;
   border: none;
   border-radius: 10px;

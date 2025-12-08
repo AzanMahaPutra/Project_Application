@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Template Word</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  #top-bar {
+    margin: 20px 60px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  #top-bar label {
+    font-weight: 600;
+    color: #003d8a;
+  }
+
+  #templateSelect {
+    padding: 10px 15px;
+    border: 1px solid #bcd3ff;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: white;
+    color: #333;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    min-width: 300px;
+    transition: border-color 0.3s;
+  }
+
+  #templateSelect:hover {
+    border-color: #0061c1;
+  }
+
+  #templateSelect:focus {
+    outline: none;
+    border-color: #0061c1;
+    box-shadow: 0 0 8px rgba(6, 97, 193, 0.15);
+  }
+
+  #container {
+    display: flex;
+    gap: 20px;
+    margin: 20px 60px;
+    min-height: 400px;
+  }
+
+  #viewer {
+    flex: 1;
+    background: #f5faff;
+    border: 1px solid #d7e9ff;
+    border-radius: 12px;
+    padding: 15px;
+    overflow-y: auto;
+    max-height: 500px;
+  }
+
+  #editor {
+    flex: 1;
+    background: white;
+    border: 1px solid #bcd3ff;
+    border-radius: 12px;
+    padding: 15px;
+    overflow-y: auto;
+    max-height: 500px;
+  }
+
+  #exportBtn {
+    display: none;
+    margin: 20px 60px;
+    padding: 12px 24px;
+    background-color: #0061c1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+
+  #exportBtn:hover:not(:disabled) {
+    background-color: #3e9fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(6, 97, 193, 0.2);
+  }
+
+  #exportBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 1024px) {
+    #container {
+      flex-direction: column;
+      margin: 20px 20px;
+    }
+
+    #top-bar {
+      margin: 20px;
+      flex-wrap: wrap;
+    }
+
+    #templateSelect {
+      min-width: 250px;
+    }
+
+    #exportBtn {
+      margin: 20px;
+    }
+  }
+</style>
+</head>
+<body>
+
+
+<div class="sidebar" id="sidebar">
+<a href="index.html">Beranda</a>
+<a href="tambahData.html">Tambah Data</a>
+<a href="cariData.html">Cari Data</a>
+<a href="laporanAcara.html">Laporan Acara</a>
+<a href="editWord.html">Edit File / Template</a>
+<a href="tentang.html">Tentang</a>
+</div>
+
+
+<div class="overlay" id="overlay"></div>
+
+
+<div class="main-content">
+
+
+<header class="header">
+<h1>APLIKASI RENCANA KARIR KELAS 12</h1>
+<p>Pendataan Kelas 12 Rencana Setelah Lulus · Kuliah | Kerja | Wirausaha</p>
+<div class="logo">
+<img src="asset/keperluan aplikasi data PBGTM.jpeg">
+</div>
+<button class="menu-btn" id="menuBtn">☰ Menu</button>
+</header>
+
+
+<div id="top-bar">
+<label for="templateSelect">📄 Pilih Template:</label>
+<select id="templateSelect">
+<option value="" disabled selected>-- Pilih File Template --</option>
+<option value="berita">Berita Acara STC</option>
+<option value="honor">Daftar Honorarium Narsum</option>
+<option value="notulen">Notulensi Pengembangan Strategi Berkarir</option>
+<option value="pesanan">Surat Pesanan Barang</option>
+</select>
+</div>
+
+
+<div id="container">
+<div id="viewer" style="display: none;"></div>
+<div id="editor" style="display: none;"></div>
+</div>
+
+<button id="exportBtn">💾 Simpan Hasil Edit</button>
+
+
+<footer class="footer">
+SMK NEGERI 1 CISARUA | TIM PBGTM
+</footer>
+
+
+</div>
+
+<!-- Load JSZip library untuk handle file docx -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<!-- docx-preview library CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docx-preview@0.3.7/build/docx-preview.min.css">
+
+<script src="renderer.js"></script>
+</body>
+</html>

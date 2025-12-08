@@ -25,7 +25,7 @@
 
     <!-- HEADER -->
     <header class="header">
-      <h1>APLIKASI DATA SISWA KELAS 12</h1>
+      <h1>APLIKASI RENCANA KARIR KELAS 12</h1>
       <p>Pendataan Kelas 12 — Rencana Setelah Lulus</p>
       <div class="logo"> 
       <img src="asset/keperluan aplikasi data PBGTM.jpeg"> 
@@ -47,9 +47,28 @@
         <option value="kerja">Kerja</option>
       </select>
 
+      <label for="filterJurusan">Filter Jurusan:</label>
+      <select id="filterJurusan">
+        <option value="semua">Semua</option>
+        <option value="RPL">RPL</option>
+        <option value="PH">PH</option>
+        <option value="MPLB">MPLB</option>
+        <option value="TO">TO</option>
+      </select>
+
+      <label for="filterKelas">Filter Kelas:</label>
+      <select id="filterKelas">
+        <option value="semua">Semua</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+
       <button id="applyFilter">Terapkan</button>
       <button id="btnTambah">+ Tambah Data</button>
       <button id="btnExport">📊 Export Excel</button>
+      <button id="btnImport">📥 Import CSV</button>
+      <input type="file" id="importFileSiswa" accept=".csv" style="display:none;">
     </div>
 
     <!-- SEARCH -->
@@ -63,7 +82,7 @@
     <div id="dataList">
       <div class="data-header">
         <span>Nama</span>
-        <span>Kelas</span>
+        <span>Jurusan / Kelas</span>
         <span>Rencana</span>
         <span>Keterangan</span>
         <span>Aksi</span>

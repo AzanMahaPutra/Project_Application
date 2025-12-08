@@ -145,20 +145,30 @@ header .logo img {
    AREA FILTER DAN SEARCH
 =================================== */
 
-#filterSelect, 
-#searchInput {
+/* Unified filter styles for selects and inputs inside .filter-box */
+.filter-box select,
+.filter-box input {
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid #bcd3ff;
   outline: none;
   font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.filter-box select:focus,
+.filter-box input:focus {
+  border-color: #0061c1;
+  box-shadow: 0 0 8px rgba(6, 97, 193, 0.08);
 }
 
 #applyFilter,
 #btnTambah,
 #searchBtn,
 #resetBtn,
-#btnExport {
+#btnExport,
+#btnImport {
   padding: 10px 14px;
   border: none;
   border-radius: 10px;
@@ -173,7 +183,8 @@ header .logo img {
 #btnTambah:hover,
 #searchBtn:hover,
 #resetBtn:hover,
-#btnExport:hover {
+#btnExport:hover,
+#btnImport:hover {
   background-color: #3e9fff;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(6, 97, 193, 0.2);
@@ -465,4 +476,11 @@ header .logo img {
   font-weight: 600;
   margin-top: auto;
   flex-shrink: 0;
+}
+
+.btn-edit {
+  border-radius: 5px;
+}
+.btn-hapus {
+  border-radius: 5px;
 }

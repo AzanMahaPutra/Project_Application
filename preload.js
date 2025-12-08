@@ -12,4 +12,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadAcara: () => ipcRenderer.invoke('load-acara'),
   updateAcara: (index, acara) => ipcRenderer.invoke('update-acara', index, acara),
   deleteAcara: (index) => ipcRenderer.invoke('delete-acara', index),
+
+  // Template Word
+  loadTemplate: (type) => ipcRenderer.invoke('load-template', type),
+  exportTemplate: (data) => ipcRenderer.invoke('export-template', data)
 });
