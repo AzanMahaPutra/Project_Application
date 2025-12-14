@@ -37,39 +37,38 @@
 
     <h2>Daftar Data Siswa</h2>
 
-    <!-- FILTER -->
-    <div class="filter-box">
-      <label for="filterSelect">Filter Rencana:</label>
-      <select id="filterSelect">
-        <option value="semua">Semua</option>
-        <option value="kuliah">Kuliah</option>
-        <option value="wirausaha">Wirausaha</option>
-        <option value="kerja">Kerja</option>
-      </select>
+<!-- FILTER -->
+<div class="filter-box">
+  <label for="filterSelect">Filter Rencana:</label>
+  <select id="filterSelect">
+    <option value="semua">Semua</option>
+    <option value="kuliah">Kuliah</option>
+    <option value="wirausaha">Wirausaha</option>
+    <option value="kerja">Kerja</option>
+  </select>
 
-      <label for="filterJurusan">Filter Jurusan:</label>
-      <select id="filterJurusan">
-        <option value="semua">Semua</option>
-        <option value="RPL">RPL</option>
-        <option value="PH">PH</option>
-        <option value="MPLB">MPLB</option>
-        <option value="TO">TO</option>
-      </select>
-
-      <label for="filterKelas">Filter Kelas:</label>
-      <select id="filterKelas">
-        <option value="semua">Semua</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-      </select>
-
-      <button id="applyFilter">Terapkan</button>
-      <button id="btnTambah">+ Tambah Data</button>
-      <button id="btnExport">📊 Export Excel</button>
-      <button id="btnImport">📥 Import CSV</button>
-      <input type="file" id="importFileSiswa" accept=".csv" style="display:none;">
-    </div>
+  <!-- GANTI INI: Filter Kelas yang sudah menggabungkan Jurusan -->
+  <label for="filterKelas">Filter Kelas:</label>
+  <select id="filterKelas">
+    <option value="semua">Semua</option>
+    <option value="XII - RPL 1" selected>XII - RPL 1</option>
+    <option value="XII - RPL 2">XII - RPL 2</option>
+    <option value="XII - TKR 1">XII - TKR 1</option>
+    <option value="XII - TKR 2">XII - TKR 2</option>
+    <option value="XII - TKR 3">XII - TKR 3</option>
+    <option value="XII - MPLB 1">XII - MPLB 1</option>
+    <option value="XII - MPLB 2">XII - MPLB 2</option>
+    <option value="XII - MPLB 3">XII - MPLB 3</option>
+    <option value="XII - PH 1">XII - PH 1</option>
+    <option value="XII - PH 2">XII - PH 2</option>
+    <option value="XII - PH 3">XII - PH 3</option>
+  </select>
+  
+  <button id="btnTambah">+ Tambah Data</button>
+  <button id="btnExport">📊 Export Excel</button>
+  <button id="btnImport">📥 Import CSV</button>
+  <input type="file" id="importFileSiswa" accept=".csv" style="display:none;">
+</div>
 
     <!-- SEARCH -->
     <div class="search-box">
@@ -98,15 +97,38 @@
     <div id="detailContainer"></div>
     <br>
     <button id="btnKembali">Kembali</button>
-  </div>
+  </div>h
 
-  <!-- FORM EDIT DATA -->
+<!-- FORM EDIT DATA -->
 <div id="editForm" style="display:none;">
   <h2>Edit Data Siswa</h2>
 
   <h3>📋 Data Dasar Siswa</h3>
   <input type="text" id="editNama" placeholder="Nama Lengkap"><br>
   <input type="text" id="editNisn" placeholder="NISN"><br>
+  <input type="text" id="editNis" placeholder="NIS"><br>
+  
+  <label for="editJenisKelamin">Jenis Kelamin:</label>
+  <select id="editJenisKelamin">
+    <option value="Laki-laki">Laki-laki</option>
+    <option value="Perempuan">Perempuan</option>
+  </select><br>
+  
+  <label for="editKelas">Kelas Sekolah:</label>
+  <select id="editKelas">
+    <option value="XII - RPL 1">XII - RPL 1</option>
+    <option value="XII - RPL 2">XII - RPL 2</option>
+    <option value="XII - TKR 1">XII - TKR 1</option>
+    <option value="XII - TKR 2">XII - TKR 2</option>
+    <option value="XII - TKR 3">XII - TKR 3</option>
+    <option value="XII - MPLB 1">XII - MPLB 1</option>
+    <option value="XII - MPLB 2">XII - MPLB 2</option>
+    <option value="XII - MPLB 3">XII - MPLB 3</option>
+    <option value="XII - PH 1">XII - PH 1</option>
+    <option value="XII - PH 2">XII - PH 2</option>
+    <option value="XII - PH 3">XII - PH 3</option>
+  </select><br>
+  
   <input type="text" id="editAlamat" placeholder="Alamat"><br>
 
   <h3>🎯 Rencana & Detail</h3>

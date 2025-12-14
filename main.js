@@ -1,11 +1,12 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { exec } = require('child_process');
 
-console.log('main.js loaded');
+console.log('🚀 main.js loaded');
 
 function createWindow() {
-  console.log('Creating window...');
+  console.log('🪟 Creating window...');
   const win = new BrowserWindow({
     width: 1300,
     height: 800,
@@ -18,13 +19,17 @@ function createWindow() {
     },
   });
 
-  console.log('Loading index.html...');
+  console.log('📄 Loading index.html...');
   win.loadFile('index.html');
-  console.log('Window loaded');
+  
+  // Open DevTools for debugging
+  win.webContents.openDevTools();
+  
+  console.log('✅ Window loaded');
 }
 
 app.whenReady().then(() => {
-  console.log('app ready, creating window');
+  console.log('✅ app ready, creating window');
   createWindow();
 
   app.on('activate', () => {
@@ -36,14 +41,19 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-// Error handlers
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-});
-
-ipcMain.on('renderer-error', (event, error) => {
-  console.error('Renderer Error:', error);
-});
+if (process.platform === 'win32') {
+  const libreOfficePaths = [
+    'C:\\Program Files\\LibreOffice\\program\\',
+    'C:\\Program Files (x86)\\LibreOffice\\program\\'
+  ];
+  
+  for (const librePath of libreOfficePaths) {
+    if (fs.existsSync(librePath)) {
+      process.env.PATH = `${librePath};${process.env.PATH}`;
+      break;
+    }
+  }
+}
 
 // ============================================================
 // IPC Handlers
@@ -51,7 +61,6 @@ ipcMain.on('renderer-error', (event, error) => {
 const dataPath = path.join(__dirname, 'data.json');
 const dataAcaraPath = path.join(__dirname, 'dataAcara.json');
 
-// Pastikan file database ada
 function ensureDataFiles() {
   if (!fs.existsSync(dataPath)) {
     fs.writeFileSync(dataPath, '[]');
@@ -122,6 +131,124 @@ ipcMain.handle('delete-data', async (event, index) => {
   }
 });
 
+ipcMain.handle('save-all-data', async (event, allData) => {
+  try {
+    ensureDataFiles();
+    
+    // Validasi: Pastikan setiap data memiliki nama dan tidak duplikat
+    const uniqueData = [];
+    const seenNames = new Set();
+    const seenNisn = new Set();
+    
+    for (const item of allData) {
+      if (!item.nama || !item.nisn) continue; // Skip data tidak valid
+      
+      // Hanya ambil data yang memiliki nama lengkap (bukan partial)
+      if (!item.tipe || item.tipe === undefined) continue;
+      
+      // Cegah duplikat berdasarkan nama atau NISN
+      if (!seenNames.has(item.nama) && !seenNisn.has(item.nisn)) {
+        seenNames.add(item.nama);
+        seenNisn.add(item.nisn);
+        uniqueData.push(item);
+      }
+    }
+    
+    fs.writeFileSync(dataPath, JSON.stringify(uniqueData, null, 2));
+    return `Data berhasil disimpan! (${uniqueData.length} records)`;
+  } catch (error) {
+    throw new Error('Gagal menyimpan semua data: ' + error.message);
+  }
+});
+
+// ============================= DATA SISWA KELAS XII =============================
+const dataXiiPath = path.join(__dirname, 'dataxii.json');
+
+// Handler untuk load data siswa kelas XII
+ipcMain.handle('load-data-xii', async () => {
+  try {
+    console.log('📂 Loading dataxii.json from:', dataXiiPath);
+    
+    if (!fs.existsSync(dataXiiPath)) {
+      console.error('❌ File dataxii.json tidak ditemukan!');
+      return [];
+    }
+    
+    const data = JSON.parse(fs.readFileSync(dataXiiPath, 'utf8') || '[]');
+    console.log(`✅ Loaded ${data.length} siswa from dataxii.json`);
+    
+    // Tampilkan contoh data pertama untuk debug
+    if (data.length > 0) {
+      console.log('📋 Contoh data pertama:', {
+        nama: data[0].nama,
+        kelasSekolah: data[0].kelasSekolah,
+        nisn: data[0].nisn
+      });
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Error loading data XII:', error);
+    return [];
+  }
+});
+
+// Handler untuk mendapatkan siswa berdasarkan kelas
+ipcMain.handle('get-siswa-by-kelas', async (event, kelas) => {
+  try {
+    console.log(`🔍 Mencari siswa di kelas: "${kelas}"`);
+    
+    if (!fs.existsSync(dataXiiPath)) {
+      console.error('❌ File dataxii.json tidak ditemukan!');
+      return [];
+    }
+    
+    const fileContent = fs.readFileSync(dataXiiPath, 'utf8');
+    const data = JSON.parse(fileContent || '[]');
+    console.log(`📊 Total data di dataxii.json: ${data.length}`);
+    
+    // Filter berdasarkan kelasSekolah - CASE INSENSITIVE
+    const filtered = data.filter(siswa => {
+      if (!siswa.kelasSekolah) {
+        console.log(`⚠️ Siswa ${siswa.nama} tidak punya kelasSekolah`);
+        return false;
+      }
+      
+      // Normalisasi: hilangkan spasi ekstra, ubah ke lowercase
+      const kelasSiswa = siswa.kelasSekolah.trim().toLowerCase();
+      const kelasDicari = kelas.trim().toLowerCase();
+      
+      return kelasSiswa === kelasDicari;
+    });
+    
+    console.log(`✅ Ditemukan ${filtered.length} siswa di kelas "${kelas}"`);
+    
+    if (filtered.length > 0) {
+      console.log('📋 3 siswa pertama:');
+      filtered.slice(0, 3).forEach(siswa => {
+        console.log(`   - ${siswa.nama} (${siswa.kelasSekolah})`);
+      });
+    }
+    
+    // Return dengan format yang DIPERLUKAN oleh form
+    return filtered.map(siswa => {
+      return {
+        nama: siswa.nama || "",
+        nisn: siswa.nisn || "",
+        nis: siswa.nis || "00000",
+        jenisKelamin: siswa.jenisKelamin || "Laki-laki",
+        kelasSekolah: siswa.kelasSekolah,
+        alamat: siswa.alamat || "-"
+      };
+    });
+    
+  } catch (error) {
+    console.error('❌ Error getting siswa by kelas:', error);
+    console.error('Stack:', error.stack);
+    return [];
+  }
+});
+
 // ============================= DATA ACARA =============================
 ipcMain.handle('save-acara', async (event, newAcara) => {
   try {
@@ -186,107 +313,239 @@ ipcMain.handle('delete-acara', async (event, index) => {
   }
 });
 
-// ============================================================
-// ============== HANDLER BARU UNTUK EDIT WORD ===============
-// ============================================================
+// ==================== EDIT DOKUMEN HANDLERS ====================
+const PizZip = require('pizzip');
+const Docxtemplater = require('docxtemplater');
 
-// folder template Word
-const templateFolder = path.join(__dirname, "templates");
-
-// Load isi file Word (kirim sebagai buffer base64)
-ipcMain.handle("load-word-template", async (event, filename) => {
+ipcMain.handle('get-available-documents', async () => {
   try {
-    const filePath = path.join(templateFolder, filename);
+    const templatesDir = path.join(__dirname, 'Templates');
+    const viewDir = path.join(__dirname, 'View');
 
-    if (!fs.existsSync(filePath)) {
-      throw new Error("Template tidak ditemukan");
+    if (!fs.existsSync(templatesDir)) {
+      fs.mkdirSync(templatesDir, { recursive: true });
+    }
+    if (!fs.existsSync(viewDir)) {
+      fs.mkdirSync(viewDir, { recursive: true });
     }
 
-    const fileBuffer = fs.readFileSync(filePath);
-    return fileBuffer.toString("base64");
+    const files = fs.readdirSync(templatesDir)
+      .filter(file => file.toLowerCase().endsWith('.docx'));
+
+    const documents = [];
+
+    files.forEach(file => {
+      const baseName = path.basename(file, '.docx');
+      const docxPath = path.join(templatesDir, file);
+      const pdfPath = path.join(viewDir, `${baseName}.pdf`);
+      const hasPdf = fs.existsSync(pdfPath);
+
+      const displayName = baseName
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/_/g, ' ')
+        .trim();
+
+      documents.push({
+        filename: file,
+        displayName,
+        docxPath,
+        pdfPath,
+        hasPdf,
+        baseName
+      });
+    });
+
+    return documents;
+
   } catch (error) {
-    return { error: error.message };
+    console.error('Error getting available documents:', error);
+    return [];
   }
 });
 
-// Export Word baru
-ipcMain.handle("export-word", async (event, outputName, bufferBase64) => {
+// Handler untuk mengekstrak placeholders dari DOCX (REAL IMPLEMENTATION)
+ipcMain.handle('extract-placeholders', async (event, templatePath) => {
   try {
-    const outputPath = path.join(__dirname, "export", outputName);
-
-    // buat folder export kalau belum ada
-    if (!fs.existsSync(path.join(__dirname, "export"))) {
-      fs.mkdirSync(path.join(__dirname, "export"));
+    console.log('🔍 Extracting placeholders from:', templatePath);
+    
+    if (!fs.existsSync(templatePath)) {
+      console.error('❌ Template file not found:', templatePath);
+      throw new Error('Template file not found: ' + templatePath);
     }
-
-    const data = Buffer.from(bufferBase64, "base64");
-    fs.writeFileSync(outputPath, data);
-
-    return "Berhasil mengekspor file!";
+    
+    try {
+      // Baca file DOCX sebagai buffer
+      const content = fs.readFileSync(templatePath);
+      
+      // Parse dengan PizZip
+      const PizZip = require('pizzip');
+      const zip = new PizZip(content);
+      
+      // Ambil document.xml
+      const documentXml = zip.files['word/document.xml'].asText();
+      
+      console.log('📄 Raw XML length:', documentXml.length);
+      
+      // Parse XML untuk mendapatkan semua teks
+      const placeholders = [];
+      
+      // Cari semua placeholder dalam format {{...}}
+      // Pattern untuk mencocokkan placeholder di dalam XML
+      // Perhatikan bahwa di XML, placeholder bisa dipisah oleh tag
+      const placeholderPattern = /\{\{[^{}]*\}\}/g;
+      
+      // Cari di seluruh XML
+      let matches = documentXml.match(placeholderPattern);
+      
+      if (matches && matches.length > 0) {
+        // Bersihkan placeholder
+        matches.forEach(match => {
+          // Hapus {{ dan }}
+          let placeholder = match.replace(/\{\{/g, '').replace(/\}\}/g, '').trim();
+          
+          // Hapus tag XML jika ada
+          placeholder = placeholder.replace(/<[^>]+>/g, '');
+          
+          // Hapus entity references
+          placeholder = placeholder.replace(/&[a-z]+;/g, '');
+          
+          if (placeholder && placeholder.length > 0 && !placeholders.includes(placeholder)) {
+            placeholders.push(placeholder);
+          }
+        });
+      }
+      
+      // Jika tidak ditemukan dengan regex langsung, coba dengan pendekatan lain
+      if (placeholders.length === 0) {
+        console.log('⚠️ No placeholders found with direct regex, trying alternative method...');
+        
+        // Ekstrak semua teks dari XML
+        let cleanText = documentXml
+          // Hapus komentar
+          .replace(/<!--[\s\S]*?-->/g, '')
+          // Ambil hanya konten dalam tag <w:t>
+          .match(/<w:t[^>]*>([^<]+)<\/w:t>/g)
+          ?.map(tag => tag.replace(/<[^>]+>/g, ''))
+          ?.join('') || '';
+        
+        // Cari placeholder di teks yang sudah dibersihkan
+        const cleanMatches = cleanText.match(/\{\{[^{}]*\}\}/g);
+        
+        if (cleanMatches && cleanMatches.length > 0) {
+          cleanMatches.forEach(match => {
+            let placeholder = match.replace(/\{\{/g, '').replace(/\}\}/g, '').trim();
+            if (placeholder && !placeholders.includes(placeholder)) {
+              placeholders.push(placeholder);
+            }
+          });
+        }
+      }
+      
+      console.log(`✅ Found ${placeholders.length} placeholders:`, placeholders);
+      
+      // Debug: Tampilkan beberapa contoh teks dari XML
+      if (placeholders.length === 0) {
+        console.log('⚠️ Debug - sampling XML content:');
+        console.log(documentXml.substring(0, 1000));
+        
+        // Coba metode ketiga: baca file secara manual untuk debugging
+        try {
+          const AdmZip = require('adm-zip');
+          const zip2 = new AdmZip(templatePath);
+          const entries = zip2.getEntries();
+          
+          const documentEntry = entries.find(entry => entry.entryName === 'word/document.xml');
+          if (documentEntry) {
+            const xmlText = documentEntry.getData().toString('utf8');
+            
+            // Simpan XML untuk inspeksi manual
+            const debugPath = path.join(__dirname, 'debug_document.xml');
+            fs.writeFileSync(debugPath, xmlText);
+            console.log(`📝 Debug XML saved to: ${debugPath}`);
+            
+            // Cari secara manual
+            const lines = xmlText.split('\n');
+            for (let i = 0; i < Math.min(100, lines.length); i++) {
+              if (lines[i].includes('{{') || lines[i].includes('}}')) {
+                console.log(`Line ${i}: ${lines[i].substring(0, 200)}`);
+              }
+            }
+          }
+        } catch (debugError) {
+          console.log('Debug error:', debugError.message);
+        }
+      }
+      
+      return placeholders;
+      
+    } catch (error) {
+      console.error('❌ Error in extract-placeholders:', error);
+      
+      // Fallback: buat file debug untuk analisis
+      try {
+        const content = fs.readFileSync(templatePath, 'utf8', { encoding: 'binary' });
+        const debugPath = path.join(__dirname, 'template_debug.txt');
+        fs.writeFileSync(debugPath, content.substring(0, 5000));
+        console.log(`📝 Debug template saved to: ${debugPath}`);
+      } catch (e) {
+        console.error('Cannot save debug file:', e);
+      }
+      
+      // Return placeholder umum sebagai fallback
+      return ['Nama', 'Tanggal', 'Lokasi'];
+    }
+    
   } catch (error) {
-    return { error: error.message };
+    console.error('❌ Error in extract-placeholders:', error);
+    // Tetap return default placeholders agar tidak crash
+    return ['Nama', 'Tanggal', 'Lokasi'];
   }
 });
 
-// ============================================================
-// TEMPLATE WORD HANDLERS
-// ============================================================
+const { dialog } = require('electron');
 
-// Mapping template types ke file paths
-const templateMap = {
-  'berita': 'Template/Berita Acara STC 1.docx',
-  'honor': 'Template/DAFTAR HONORARIUM NARSUM.docx',
-  'notulen': 'Template/Notulensi_Pengenalan_Strategi_Berkarir_Perbankan_Syariah_dan_Job_Matching.docx',
-  'pesanan': 'Template/SURAT PESANAN BARANG.docx'
-};
-
-// Load template dari file docx
-ipcMain.handle('load-template', async (event, type) => {
+ipcMain.handle('save-document', async (event, templatePath, data, outputPath) => {
   try {
-    const filePath = templateMap[type];
-    if (!filePath) {
-      throw new Error(`Template type '${type}' tidak valid`);
-    }
+    const content = fs.readFileSync(templatePath, 'binary');
 
-    const fullPath = path.join(__dirname, filePath);
-    
-    // Check file exists
-    if (!fs.existsSync(fullPath)) {
-      throw new Error(`File template tidak ditemukan: ${fullPath}`);
-    }
+    const zip = new PizZip(content);
+    const doc = new Docxtemplater(zip, {
+      paragraphLoop: true,
+      linebreaks: true,
+    });
 
-    // Read file and convert to base64
-    const fileContent = fs.readFileSync(fullPath);
-    const base64 = fileContent.toString('base64');
-    
-    return base64;
+    // ⬇️ JANGAN PERNAH di luar handler
+    doc.render(data);
+
+    const buf = doc.getZip().generate({ type: 'nodebuffer' });
+    fs.writeFileSync(outputPath, buf);
+
+    return true;
+
   } catch (error) {
-    console.error('Error loading template:', error);
-    return { error: error.message };
+    console.error("❌ DOCX ERROR");
+
+    if (error.properties?.errors) {
+      error.properties.errors.forEach((e, i) => {
+        console.error(`Error ${i + 1}:`, e.properties.explanation);
+      });
+    }
+
+    // ❌ JANGAN throw Error di level file
+    throw new Error("TemplateError: Data tidak sesuai dengan placeholder");
   }
 });
 
-// Export/Save template hasil editing
-ipcMain.handle('export-template', async (event, data) => {
+
+// =====================
+// CHECK PDF EXISTS
+// =====================
+ipcMain.handle('check-pdf-exists', async (event, pdfPath) => {
   try {
-    const { base64, filename } = data;
-    
-    if (!base64 || !filename) {
-      throw new Error('base64 dan filename diperlukan');
-    }
-
-    const exportDir = path.join(__dirname, "export");
-    if (!fs.existsSync(exportDir)) {
-      fs.mkdirSync(exportDir, { recursive: true });
-    }
-
-    const outputPath = path.join(exportDir, filename);
-    const buffer = Buffer.from(base64, 'base64');
-    fs.writeFileSync(outputPath, buffer);
-
-    return { success: true, message: `File berhasil disimpan ke ${outputPath}` };
-  } catch (error) {
-    console.error('Error exporting template:', error);
-    return { success: false, error: error.message };
+    if (!pdfPath) return false;
+    return fs.existsSync(pdfPath);
+  } catch (err) {
+    console.error('check-pdf-exists error:', err);
+    return false;
   }
 });

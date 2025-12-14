@@ -1,0 +1,141 @@
+
+/* styles.css — tambahan khusus split/editor */
+.split-root {
+  display: flex;
+  height: calc(100vh - 160px); /* space for header and footer */
+  margin: 20px;
+  background: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* panes */
+.pane {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--pane-bg, #ffffff);
+  transition: width 0.15s;
+  min-height: 0;
+}
+
+.preview-pane {
+  width: 65%;
+  padding: 0;
+}
+
+.editor-pane {
+  width: 35%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* header inside pane */
+.pane-header {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  background: rgba(0,0,0,0.02);
+}
+
+.pane-title { font-weight:600; }
+
+/* divider */
+.divider {
+  width: 8px;
+  cursor: col-resize;
+  background: linear-gradient(180deg, rgba(0,0,0,0.03), rgba(0,0,0,0.01));
+  user-select: none;
+}
+
+/* preview wrapper */
+.preview-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #fafafa;
+}
+
+.preview-wrapper iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+/* loading / error */
+.loading {
+  position:absolute;
+  left: 12px;
+  top: 12px;
+  background: rgba(255,255,255,0.9);
+  padding: 6px 10px;
+  border-radius: 6px;
+  z-index: 3;
+  display: none;
+}
+.error {
+  position:absolute;
+  left: 12px;
+  top: 12px;
+  background: #ffdede;
+  padding: 8px;
+  border-radius: 6px;
+  z-index: 3;
+  color: #900;
+  max-width: 90%;
+}
+
+/* controls and editor */
+.control-row {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin: 8px 0;
+}
+
+.toolbar {
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin: 8px 0;
+  flex-wrap:wrap;
+}
+
+.fmt-btn, .align-btn, .insert-field, button {
+  padding:6px 8px;
+  border-radius:6px;
+  border:1px solid rgba(0,0,0,0.08);
+  background: #fff;
+  cursor: pointer;
+}
+
+#editor {
+  width:100%;
+  height: calc(100% - 120px);
+  min-height: 300px;
+  box-sizing: border-box;
+  padding:12px;
+  resize: none;
+  border-radius:6px;
+  border:1px solid rgba(0,0,0,0.08);
+  font-size:14px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.editor-footer {
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  margin-top:8px;
+  gap:8px;
+}
+
+.autosave {
+  font-size:12px;
+  color:#666;
+}
+
+.counter { font-size:12px; color:#666; }

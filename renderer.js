@@ -1,17 +1,52 @@
-// Global error handler
-window.addEventListener('error', (event) => {
-  console.error('Global error:', event.error);
-  if (window.electronAPI) {
-    window.electronAPI.logError?.('Global error: ' + event.error?.message);
-  }
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection:', event.reason);
-  if (window.electronAPI) {
-    window.electronAPI.logError?.('Unhandled rejection: ' + event.reason?.message);
-  }
-});
+// =================== GLOBAL NOTIFICATION HELPER ===================
+function showNotification(type, content) {
+  const dialog = document.createElement('div');
+  dialog.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  `;
+  
+  const closeButton = `<button onclick="this.closest('[data-notification]').remove()" style="
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 16px;
+  ">✕</button>`;
+  
+  const contentDiv = document.createElement('div');
+  contentDiv.style.cssText = `
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    position: relative;
+  `;
+  contentDiv.innerHTML = closeButton + content;
+  
+  dialog.setAttribute('data-notification', 'true');
+  dialog.appendChild(contentDiv);
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.remove();
+  });
+  
+  document.body.appendChild(dialog);
+}
 
 // =================== SIDEBAR ===================
 window.addEventListener("DOMContentLoaded", () => {
@@ -34,10 +69,8 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 // =================== CSV IMPORT HELPERS ===================
-// Small CSV parser (handles quoted fields and double quotes)
 function parseCSV(text) {
   const lines = text.split(/\r\n|\n|\r/);
-  // remove empty trailing lines
   while (lines.length && lines[lines.length - 1].trim() === "") lines.pop();
   if (lines.length === 0) return [];
 
@@ -50,7 +83,7 @@ function parseCSV(text) {
       if (ch === '"') {
         if (inQuotes && line[i + 1] === '"') {
           cur += '"';
-          i++; // skip escaped quote
+          i++;
         } else {
           inQuotes = !inQuotes;
         }
@@ -83,13 +116,11 @@ function normalizeHeader(h) {
   return h.replace(/[^a-z0-9]/gi, ' ').toLowerCase().trim();
 }
 
-// Try to parse common date formats and return ISO date string (YYYY-MM-DD)
 function parseDateString(s) {
   if (!s) return '';
   const str = String(s).trim();
   if (!str) return '';
 
-  // ISO-like: 2023-08-30 or 2023/08/30
   const isoMatch = str.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
   if (isoMatch) {
     const y = isoMatch[1];
@@ -98,7 +129,6 @@ function parseDateString(s) {
     return `${y}-${m}-${d}`;
   }
 
-  // Common DMY: 30/08/2023 or 30-08-2023 -> assume day-month-year
   const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
   if (dmy) {
     const d = String(dmy[1]).padStart(2, '0');
@@ -107,18 +137,15 @@ function parseDateString(s) {
     return `${y}-${m}-${d}`;
   }
 
-  // Try Date.parse fallback for other formats (e.g., 'Aug 30, 2023')
   const parsed = new Date(str);
   if (!isNaN(parsed.getTime())) {
     return parsed.toISOString().slice(0, 10);
   }
 
-  // Could not parse -> return empty string to avoid invalid dates
   return '';
 }
 
 function mapRowToStudent(row) {
-  // row keys are lowercase header texts
   const get = (names) => {
     for (const n of names) {
       if (row[n] !== undefined && row[n] !== '') return row[n];
@@ -126,30 +153,29 @@ function mapRowToStudent(row) {
     return undefined;
   };
 
-  // common header variants
   const mapped = {
     nama: get(['nama', 'name']),
     nisn: get(['nisn']),
-    jurusanSekolah: get(['jurusan sekolah', 'jurusan_sekolah', 'jurusan', 'major']),
+    nis: get(['nis']),
+    jenisKelamin: get(['jenis kelamin', 'jenis_kelamin', 'gender']),
     kelasSekolah: get(['kelas', 'kelas sekolah', 'class']),
     alamat: get(['alamat', 'address']),
-    tipe: get(['rencana', 'rencana setelah lulus', 'rencana']),
-    universitasType: get(['tipe universitas', 'tipe-univ', 'tipe_univ', 'tipeuniversitas']),
-    universitas: get(['nama universitas', 'nama-univ', 'universitas', 'namauniversitas']),
+    tipe: get(['rencana', 'rencana setelah lulus']),
+    universitasType: get(['tipe universitas', 'tipe_univ', 'tipeuniversitas']),
+    universitas: get(['nama universitas', 'nama_univ', 'universitas']),
     jenjang: get(['jenjang']),
     jurusan: get(['jurusan']),
-    bidangUsaha: get(['bidang usaha', 'bidang-usaha', 'bidangusaha']),
-    usahaDibuat: get(['usaha yang akan dibuat', 'usaha-dibuat', 'usahadibuat']),
-    jenisUsaha: get(['jenis usaha', 'jenis-usaha']),
-    rencanaMulai: get(['rencana mulai usaha', 'rencana-mulai']),
-    alasan: get(['alasan berwirausaha', 'alasan-wirausaha', 'alasan pekerjaan', 'alasan-kerja', 'alasan']),
+    bidangUsaha: get(['bidang usaha', 'bidang_usaha', 'bidangusaha']),
+    usahaDibuat: get(['usaha yang akan dibuat', 'usaha_dibuat']),
+    jenisUsaha: get(['jenis usaha', 'jenis_usaha']),
+    rencanaMulai: get(['rencana mulai usaha', 'rencana_mulai']),
+    alasan: get(['alasan berwirausaha', 'alasan_wirausaha', 'alasan']),
     perusahaan: get(['perusahaan', 'perusahaan yang dituju']),
     keterampilan: get(['keterampilan', 'keterampilan yang dimiliki']),
     jabatan: get(['jabatan', 'jabatan yang diinginkan']),
     bidang: get(['bidang', 'bidang yang diinginkan']),
   };
 
-  // fallback defaults
   Object.keys(mapped).forEach(k => {
     if (mapped[k] === undefined || mapped[k] === '') mapped[k] = '-';
   });
@@ -170,7 +196,6 @@ function mapRowToAcara(row) {
 
   const mapped = {
     namaAcara: get(['nama acara', 'nama_acara', 'namaacara', 'name']) || '-',
-    // Use ISO date (YYYY-MM-DD) or empty string if not parseable
     tanggalAcara: tanggalIso || '',
     penanggungJawab: get(['penanggung jawab', 'penanggung_jawab', 'penanggungjawab']) || '-',
     lokasi: get(['lokasi', 'location']) || '-',
@@ -181,11 +206,9 @@ function mapRowToAcara(row) {
   return mapped;
 }
 
-
 // =================== CARI DATA ===================
 window.addEventListener("DOMContentLoaded", async () => {
   const filterSelect = document.getElementById("filterSelect");
-  const filterJurusan = document.getElementById("filterJurusan");
   const filterKelas = document.getElementById("filterKelas");
   const applyFilter = document.getElementById("applyFilter");
   const dataList = document.getElementById("dataList");
@@ -207,30 +230,57 @@ window.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "tambahData.html";
   });
 
+  // Load data
   semuaData = await window.electronAPI.loadData();
-  dataTerkini = [...semuaData];
+  
+  // Set filter kelas default ke "XII - RPL 1" saat halaman dimuat
+  if (filterKelas) {
+    filterKelas.value = "XII - RPL 1";
+  }
+  
+  // Tampilkan data dengan filter default secara OTOMATIS
+  tampilkanData("semua", "", "XII - RPL 1");
 
-  function tampilkanData(filter, search = "", jurusanFilter = "semua", kelasFilter = "semua") {
-
+  function tampilkanData(filter, search = "", kelasFilter = "XII - RPL 1") {
+    console.log(`🔍 Filter: ${filter}, Kelas: "${kelasFilter}", Search: "${search}"`);
+    
+    // Hanya tampilkan data yang memiliki NAMA (data lengkap)
+    const dataLengkap = semuaData.filter(item => item.nama && item.nama.trim() !== '');
+    console.log(`📊 Total data lengkap: ${dataLengkap.length} dari ${semuaData.length}`);
+    
+    // Clear existing rows
     const existingRows = dataList.querySelectorAll('.data-row');
     existingRows.forEach(row => row.remove());
 
-    const hasil = semuaData
+    const hasil = dataLengkap
       .map((d, originalIndex) => ({ ...d, originalIndex }))
       .filter((d) => {
         if (!d.nama) return false;
 
         const cocokFilter = filter === "semua" || (d.tipe && d.tipe === filter);
-        const cocokJurusan = jurusanFilter === "semua" || ((d.jurusanSekolah || d.jurusan || '').toString().toLowerCase() === jurusanFilter.toString().toLowerCase());
-        const cocokKelas = kelasFilter === "semua" || ((d.kelasSekolah || d.kelas || '').toString() === kelasFilter.toString());
+        
+        console.log(`🔍 Siswa: "${d.nama}" | Kelas: "${d.kelasSekolah}" | Filter: "${kelasFilter}"`);
+        
+        // Perbaikan: Gunakan trim() dan cek apakah kelasSekolah ada
+        const kelasSiswa = d.kelasSekolah ? d.kelasSekolah.trim() : '';
+        const cocokKelas = kelasFilter === "semua" || kelasSiswa === kelasFilter;
+        
         const namaLower = (d.nama || "").toLowerCase();
         const tipeLower = (d.tipe || "").toLowerCase();
         const searchLower = (search || "").toLowerCase();
         const cocokSearch = namaLower.includes(searchLower) || tipeLower.includes(searchLower);
 
-        return cocokFilter && cocokSearch && cocokJurusan && cocokKelas;
+        const cocok = cocokFilter && cocokSearch && cocokKelas;
+        
+        if (cocok) {
+          console.log(`✅ "${d.nama}" LULUS filter: Kelas "${kelasSiswa}" cocok dengan "${kelasFilter}"`);
+        }
+        
+        return cocok;
       });
 
+    console.log(`✅ Ditemukan ${hasil.length} siswa untuk filter kelas "${kelasFilter}"`);
+    
     dataTerkini = hasil;
 
     if (hasil.length === 0) {
@@ -238,7 +288,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       noDataRow.className = 'data-row';
       noDataRow.innerHTML = `
         <span colspan="6" style="grid-column: 1 / -1; text-align: center; padding: 20px;">
-          Tidak ada data ditemukan.
+          Tidak ada data ditemukan untuk kelas "${kelasFilter}".
         </span>
       `;
       dataList.appendChild(noDataRow);
@@ -250,13 +300,13 @@ window.addEventListener("DOMContentLoaded", async () => {
       dataRow.className = 'data-row';
       dataRow.innerHTML = `
         <span>${item.nama || '-'}</span>
-        <span>${(item.jurusanSekolah || '-') + ' / ' + (item.kelasSekolah || '-')}</span>
+        <span>${item.kelasSekolah || '-'}</span> <!-- Tampilkan kelas lengkap -->
         <span>${item.tipe || '-'}</span>
         <span>${getKeterangan(item)}</span>
-        <div style="display: flex; gap: 7px; border-radius: 20px;">
-          <button class="btn-detail" data-index="${item.originalIndex}">Detail</button>
-          <button class="btn-edit" data-index="${item.originalIndex}" style="background-color: #ffa500;">Edit</button>
-          <button class="btn-hapus" data-index="${item.originalIndex}" style="background-color: #ff4444;">Hapus</button>
+        <div style="display: flex; border-radius: 20px;">
+          <button class="btn-detail y" data-index="${item.originalIndex}">Detail</button>
+          <button class="btn-edit y" data-index="${item.originalIndex}" style="background-color: #ffa500;">Edit</button>
+          <button class="btn-hapus y" data-index="${item.originalIndex}" style="background-color: #ff4444;">Hapus</button>
         </div>
       `;
       dataList.appendChild(dataRow);
@@ -300,178 +350,216 @@ window.addEventListener("DOMContentLoaded", async () => {
     detailContent.style.display = "block";
 
     let html = `
-      <p><b>Nama Lengkap:</b> ${item.nama}</p>
-      <p><b>NISN:</b> ${item.nisn}</p>
-      <p><b>Jurusan Sekolah:</b> ${item.jurusanSekolah || item.jurusan || '-'}</p>
-      <p><b>Kelas:</b> ${item.kelasSekolah || item.kelas || '-'}</p>
-      <p><b>Alamat:</b> ${item.alamat}</p>
+      <div class="detail-section">
+        <h3>👤 Data Diri</h3>
+        <p><b>Nama Lengkap:</b> ${item.nama}</p>
+        <p><b>NISN:</b> ${item.nisn}</p>
+        <p><b>NIS:</b> ${item.nis || '-'}</p>
+        <p><b>Jenis Kelamin:</b> ${item.jenisKelamin || '-'}</p>
+        <p><b>Kelas:</b> ${item.kelasSekolah || '-'}</p>
+        <p><b>Alamat:</b> ${item.alamat || '-'}</p>
+      </div>
     `;
 
     if (item.tipe === "kuliah") {
       html += `
-        <p><b>Universitas Pilihan:</b> ${item.universitas}</p>
-        <p><b>Jurusan:</b> ${item.jurusan}</p>
-        <p><b>Jenjang:</b> ${item.jenjang}</p>
+        <div class="detail-section">
+          <h3>🎓 Data Kuliah</h3>
+          <p><b>Jenis Universitas:</b> ${item.universitasType}</p>
+          <p><b>Nama Universitas:</b> ${item.universitas}</p>
+          <p><b>Jurusan:</b> ${item.jurusan}</p>
+          <p><b>Jenjang:</b> ${item.jenjang}</p>
+        </div>
       `;
     } else if (item.tipe === "wirausaha") {
       html += `
-        <p><b>Bidang Usaha:</b> ${item.bidangUsaha}</p>
-        <p><b>Usaha yang Akan Dibuat:</b> ${item.usahaDibuat}</p>
-        <p><b>Jenis Usaha:</b> ${item.jenisUsaha}</p>
-        <p><b>Rencana Mulai Usaha:</b> ${item.rencanaMulai}</p>
-        <p><b>Alasan:</b> ${item.alasan}</p>
+        <div class="detail-section">
+          <h3>💼 Data Wirausaha</h3>
+          <p><b>Bidang Usaha:</b> ${item.bidangUsaha}</p>
+          <p><b>Usaha yang Akan Dibuat:</b> ${item.usahaDibuat}</p>
+          <p><b>Jenis Usaha:</b> ${item.jenisUsaha}</p>
+          <p><b>Rencana Mulai Usaha:</b> ${item.rencanaMulai}</p>
+          <p><b>Alasan Berwirausaha:</b> ${item.alasan}</p>
+        </div>
       `;
     } else if (item.tipe === "kerja") {
       html += `
-        <p><b>Perusahaan:</b> ${item.perusahaan}</p>
-        <p><b>Keterampilan:</b> ${item.keterampilan}</p>
-        <p><b>Jabatan:</b> ${item.jabatan}</p>
-        <p><b>Bidang:</b> ${item.bidang}</p>
-        <p><b>Alasan:</b> ${item.alasan}</p>
+        <div class="detail-section">
+          <h3>💻 Data Kerja</h3>
+          <p><b>Perusahaan:</b> ${item.perusahaan}</p>
+          <p><b>Keterampilan:</b> ${item.keterampilan}</p>
+          <p><b>Jabatan:</b> ${item.jabatan}</p>
+          <p><b>Bidang:</b> ${item.bidang}</p>
+          <p><b>Alasan Pekerjaan:</b> ${item.alasan}</p>
+        </div>
       `;
     }
 
     detailContainer.innerHTML = html;
   }
 
-  function editData(item, index) {
-    // Setup editForm dengan data
-    const editForm = document.getElementById("editForm");
-    const editRencana = document.getElementById("editRencana");
-    const btnCancelEdit = document.getElementById("btnCancelEdit");
-    const btnUpdate = document.getElementById("btnUpdate");
+function editData(item, index) {
+  console.log('✏️ Mengedit data:', item, 'index:', index);
+  
+  const editForm = document.getElementById("editForm");
+  const editRencana = document.getElementById("editRencana");
+  const btnCancelEdit = document.getElementById("btnCancelEdit");
+  const btnUpdate = document.getElementById("btnUpdate");
+  
+  if (!editForm) {
+    console.error('❌ Form edit tidak ditemukan!');
+    return;
+  }
+
+  // Data dasar
+  document.getElementById("editNama").value = item.nama || '';
+  document.getElementById("editNisn").value = item.nisn || '';
+  document.getElementById("editNis").value = item.nis || '';
+  document.getElementById("editAlamat").value = item.alamat || '';
+  
+  // Jenis Kelamin
+  const editJenisKelamin = document.getElementById("editJenisKelamin");
+  if (editJenisKelamin) {
+    editJenisKelamin.value = item.jenisKelamin || 'Laki-laki';
+  }
+  
+  // Kelas Sekolah
+  const editKelasSelect = document.getElementById("editKelas");
+  if (editKelasSelect) {
+    editKelasSelect.value = item.kelasSekolah || '';
+  }
+  
+  // Rencana
+  editRencana.value = item.tipe || 'kuliah';
+
+  // Sembunyikan main content, tampilkan form edit
+  mainContent.style.display = "none";
+  editForm.style.display = "block";
+
+  // Tampilkan field sesuai rencana
+  tampilkanFieldEdit(item.tipe);
+  
+  // Isi field sesuai tipe
+  isiFieldEdit(item);
+
+  // Event listener untuk perubahan rencana
+  editRencana.addEventListener("change", (e) => {
+    tampilkanFieldEdit(e.target.value);
+  });
+
+  // Tombol Cancel
+  btnCancelEdit.onclick = () => {
+    editForm.style.display = "none";
+    mainContent.style.display = "block";
+  };
+
+  // Tombol Update
+  btnUpdate.onclick = async () => {
+    const rencana = editRencana.value;
     
-    if (!editForm) return;
+    // Validasi data wajib
+    if (!document.getElementById("editNama").value.trim() || 
+        !document.getElementById("editNisn").value.trim()) {
+      alert("Nama dan NISN wajib diisi!");
+      return;
+    }
 
-    // Isi data dasar
-    document.getElementById("editNama").value = item.nama || '';
-    document.getElementById("editNisn").value = item.nisn || '';
-    document.getElementById("editAlamat").value = item.alamat || '';
-    editRencana.value = item.tipe || 'kuliah';
+    const updatedData = {
+      nama: document.getElementById("editNama").value.trim(),
+      nisn: document.getElementById("editNisn").value.trim(),
+      nis: document.getElementById("editNis").value.trim() || '00000',
+      jenisKelamin: editJenisKelamin ? editJenisKelamin.value : 'Laki-laki',
+      kelasSekolah: editKelasSelect ? editKelasSelect.value : '',
+      alamat: document.getElementById("editAlamat").value.trim() || '-',
+      tipe: rencana,
+    };
 
-    // Sembunyikan mainContent, tampilkan editForm
-    mainContent.style.display = "none";
-    editForm.style.display = "block";
+    // Isi field sesuai tipe rencana
+    if (rencana === "kuliah") {
+      updatedData.universitasType = document.getElementById("editUnivType").value;
+      updatedData.universitas = document.getElementById("editUnivName").value.trim();
+      updatedData.jurusan = document.getElementById("editJurusan").value.trim();
+      updatedData.jenjang = document.getElementById("editJenjang").value.trim();
+      
+      // Set field lain sebagai "-"
+      updatedData.bidangUsaha = "-";
+      updatedData.usahaDibuat = "-";
+      updatedData.jenisUsaha = "-";
+      updatedData.rencanaMulai = "-";
+      updatedData.alasan = "-";
+      updatedData.perusahaan = "-";
+      updatedData.keterampilan = "-";
+      updatedData.jabatan = "-";
+      updatedData.bidang = "-";
+      
+    } else if (rencana === "wirausaha") {
+      updatedData.bidangUsaha = document.getElementById("editBidangUsaha").value.trim();
+      updatedData.usahaDibuat = document.getElementById("editUsahaDibuat").value.trim();
+      updatedData.jenisUsaha = document.getElementById("editJenisUsaha").value.trim();
+      updatedData.rencanaMulai = document.getElementById("editRencanaMulai").value.trim();
+      updatedData.alasan = document.getElementById("editAlasanWirausaha").value.trim();
+      
+      // Set field lain sebagai "-"
+      updatedData.universitasType = "-";
+      updatedData.universitas = "-";
+      updatedData.jurusan = "-";
+      updatedData.jenjang = "-";
+      updatedData.perusahaan = "-";
+      updatedData.keterampilan = "-";
+      updatedData.jabatan = "-";
+      updatedData.bidang = "-";
+      
+    } else if (rencana === "kerja") {
+      updatedData.perusahaan = document.getElementById("editPerusahaan").value.trim();
+      updatedData.keterampilan = document.getElementById("editKeterampilan").value.trim();
+      updatedData.jabatan = document.getElementById("editJabatan").value.trim();
+      updatedData.bidang = document.getElementById("editBidang").value.trim();
+      updatedData.alasan = document.getElementById("editAlasanKerja").value.trim();
+      
+      // Set field lain sebagai "-"
+      updatedData.universitasType = "-";
+      updatedData.universitas = "-";
+      updatedData.jurusan = "-";
+      updatedData.jenjang = "-";
+      updatedData.bidangUsaha = "-";
+      updatedData.usahaDibuat = "-";
+      updatedData.jenisUsaha = "-";
+      updatedData.rencanaMulai = "-";
+    }
 
-    // Tampilkan field sesuai rencana
-    tampilkanFieldEdit(item.tipe);
-    isiFieldEdit(item);
-
-    // Event listener untuk perubahan rencana
-    editRencana.addEventListener("change", (e) => {
-      tampilkanFieldEdit(e.target.value);
-    });
-
-    // Tombol kembali
-    btnCancelEdit.onclick = () => {
+    try {
+      console.log('💾 Mengupdate data:', updatedData);
+      
+      const result = await window.electronAPI.updateData(index, updatedData);
+      
+      alert(result || 'Data berhasil diupdate!');
+      
+      // Refresh data
       editForm.style.display = "none";
       mainContent.style.display = "block";
-    };
-
-    // Tombol update
-    btnUpdate.onclick = async () => {
-      const rencana = editRencana.value;
-      const updatedData = {
-        nama: document.getElementById("editNama").value.trim(),
-        nisn: document.getElementById("editNisn").value.trim(),
-        alamat: document.getElementById("editAlamat").value.trim(),
-        tipe: rencana,
-      };
-
-      // preserve jurusan/kelas sekolah if present on original item
-      updatedData.jurusanSekolah = item.jurusanSekolah || item.jurusanSekolah === '' ? (item.jurusanSekolah || '-') : (item.jurusanSekolah || '-');
-      updatedData.kelasSekolah = item.kelasSekolah || item.kelasSekolah === '' ? (item.kelasSekolah || '-') : (item.kelas || '-');
-
-      if (!updatedData.nama || !updatedData.nisn || !updatedData.alamat) {
-        alert("Semua field wajib diisi!");
-        return;
-      }
-
-      // Tambah data spesifik sesuai tipe
-      if (rencana === "kuliah") {
-        updatedData.universitasType = document.getElementById("editUnivType").value;
-        updatedData.universitas = document.getElementById("editUnivName").value;
-        updatedData.jurusan = document.getElementById("editJurusan").value;
-        updatedData.jenjang = document.getElementById("editJenjang").value;
-      } else if (rencana === "wirausaha") {
-        updatedData.bidangUsaha = document.getElementById("editBidangUsaha").value;
-        updatedData.usahaDibuat = document.getElementById("editUsahaDibuat").value;
-        updatedData.jenisUsaha = document.getElementById("editJenisUsaha").value;
-        updatedData.rencanaMulai = document.getElementById("editRencanaMulai").value;
-        updatedData.alasan = document.getElementById("editAlasanWirausaha").value;
-      } else if (rencana === "kerja") {
-        updatedData.perusahaan = document.getElementById("editPerusahaan").value;
-        updatedData.keterampilan = document.getElementById("editKeterampilan").value;
-        updatedData.jabatan = document.getElementById("editJabatan").value;
-        updatedData.bidang = document.getElementById("editBidang").value;
-        updatedData.alasan = document.getElementById("editAlasanKerja").value;
-      }
-
-      try {
-        const result = await window.electronAPI.updateData(index, updatedData);
-        alert(result || 'Data berhasil diupdate!');
-        editForm.style.display = "none";
-        mainContent.style.display = "block";
-        semuaData = await window.electronAPI.loadData();
-        tampilkanData(filterSelect.value, searchInput ? searchInput.value : "", filterJurusan ? filterJurusan.value : 'semua', filterKelas ? filterKelas.value : 'semua');
-      } catch (error) {
-        alert('Gagal mengupdate data: ' + (error.message || 'Unknown error'));
-      }
-    };
-  }
-
-  function tampilkanFieldEdit(rencana) {
-    const kuliahFields = document.getElementById("editKuliahFields");
-    const wirausahaFields = document.getElementById("editWirausahaFields");
-    const kerjaFields = document.getElementById("editKerjaFields");
-
-    kuliahFields.style.display = "none";
-    wirausahaFields.style.display = "none";
-    kerjaFields.style.display = "none";
-
-    if (rencana === "kuliah") {
-      kuliahFields.style.display = "block";
-    } else if (rencana === "wirausaha") {
-      wirausahaFields.style.display = "block";
-    } else if (rencana === "kerja") {
-      kerjaFields.style.display = "block";
+      semuaData = await window.electronAPI.loadData();
+      
+      // Terapkan filter yang sama
+      tampilkanData(
+        filterSelect.value, 
+        searchInput ? searchInput.value : "", 
+        filterKelas.value
+      );
+      
+    } catch (error) {
+      console.error('❌ Error update:', error);
+      alert('Gagal mengupdate data: ' + (error.message || 'Unknown error'));
     }
-  }
+  };
+}
 
-  function isiFieldEdit(item) {
-    if (item.tipe === "kuliah") {
-      document.getElementById("editUnivType").value = item.universitasType || 'negeri';
-      document.getElementById("editUnivName").value = item.universitas || '';
-      document.getElementById("editJurusan").value = item.jurusan || '';
-      document.getElementById("editJenjang").value = item.jenjang || '';
-    } else if (item.tipe === "wirausaha") {
-      document.getElementById("editBidangUsaha").value = item.bidangUsaha || '';
-      document.getElementById("editUsahaDibuat").value = item.usahaDibuat || '';
-      document.getElementById("editJenisUsaha").value = item.jenisUsaha || '';
-      document.getElementById("editRencanaMulai").value = item.rencanaMulai || '';
-      document.getElementById("editAlasanWirausaha").value = item.alasan || '';
-    } else if (item.tipe === "kerja") {
-      document.getElementById("editPerusahaan").value = item.perusahaan || '';
-      document.getElementById("editKeterampilan").value = item.keterampilan || '';
-      document.getElementById("editJabatan").value = item.jabatan || '';
-      document.getElementById("editBidang").value = item.bidang || '';
-      document.getElementById("editAlasanKerja").value = item.alasan || '';
-    }
-  }
-
-  async function Data(index) {
+  async function hapusData(index) {
     if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
       try {
         const result = await window.electronAPI.deleteData(index);
         alert(result || 'Data berhasil dihapus!');
-        // Reload semua data dari server
         semuaData = await window.electronAPI.loadData();
-        // Re-render dengan filter dan search yang sama
-        const currentFilter = filterSelect.value;
-        const currentSearch = searchInput ? searchInput.value : "";
-        const currentJurusan = filterJurusan ? filterJurusan.value : 'semua';
-        const currentKelas = filterKelas ? filterKelas.value : 'semua';
-        tampilkanData(currentFilter, currentSearch, currentJurusan, currentKelas);
+        tampilkanData(filterSelect.value, searchInput ? searchInput.value : "", filterKelas.value);
       } catch (error) {
         console.error('Error detail:', error);
         alert('Gagal menghapus data: ' + (error.message || 'Unknown error'));
@@ -484,13 +572,39 @@ window.addEventListener("DOMContentLoaded", async () => {
     mainContent.style.display = "block";
   });
 
-  applyFilter.addEventListener("click", () => {
-    tampilkanData(filterSelect.value, searchInput ? searchInput.value : "", filterJurusan ? filterJurusan.value : 'semua', filterKelas ? filterKelas.value : 'semua');
-  });
+  // Event listener untuk applyFilter (opsional - bisa dihapus jika mau otomatis)
+  if (applyFilter) {
+    applyFilter.addEventListener("click", () => {
+      tampilkanData(filterSelect.value, searchInput ? searchInput.value : "", filterKelas.value);
+    });
+  }
+
+  // Event listener untuk perubahan filter (otomatis saat dropdown berubah)
+  if (filterSelect) {
+    filterSelect.addEventListener("change", () => {
+      tampilkanData(filterSelect.value, searchInput ? searchInput.value : "", filterKelas.value);
+    });
+  }
+
+  if (filterKelas) {
+    filterKelas.addEventListener("change", () => {
+      console.log(`🔄 Filter kelas berubah ke: "${filterKelas.value}"`);
+      tampilkanData(filterSelect.value, searchInput ? searchInput.value : "", filterKelas.value);
+    });
+  }
 
   if (searchBtn && searchInput) {
     searchBtn.addEventListener("click", () => {
-      tampilkanData(filterSelect.value, searchInput.value, filterJurusan ? filterJurusan.value : 'semua', filterKelas ? filterKelas.value : 'semua');
+      tampilkanData(filterSelect.value, searchInput.value, filterKelas.value);
+    });
+  }
+
+  // Juga tambahkan event listener untuk Enter pada search input
+  if (searchInput) {
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        tampilkanData(filterSelect.value, searchInput.value, filterKelas.value);
+      }
     });
   }
 
@@ -498,59 +612,45 @@ window.addEventListener("DOMContentLoaded", async () => {
     resetBtn.addEventListener("click", () => {
       searchInput.value = "";
       filterSelect.value = "semua";
-      if (filterJurusan) filterJurusan.value = 'semua';
-      if (filterKelas) filterKelas.value = 'semua';
-      tampilkanData("semua", "", 'semua', 'semua');
+      filterKelas.value = "XII - RPL 1"; // Reset ke default "XII - RPL 1"
+      tampilkanData("semua", "", "XII - RPL 1");
     });
-
-    // Export ke Excel
-    const btnExport = document.getElementById("btnExport");
-    if (btnExport) {
-      btnExport.addEventListener("click", () => {
-        exportToExcel(semuaData);
-      });
-    }
   }
 
-  // Fungsi Export ke Excel
+  // Export ke Excel
+  const btnExport = document.getElementById("btnExport");
+  if (btnExport) {
+    btnExport.addEventListener("click", () => {
+      exportToExcel(semuaData);
+    });
+  }
+
   function exportToExcel(data) {
-    // Header kolom
+    // FILTER: Hanya ambil data yang memiliki NAMA (data lengkap)
+    const dataLengkap = data.filter(item => 
+      item.nama && item.nisn && item.kelasSekolah
+    );
+    
+    console.log(`📊 Mengeksport ${dataLengkap.length} dari ${data.length} data`);
+    
     const headers = [
-      "No",
-      "Nama",
-      "NISN",
-      "Jurusan Sekolah",
-      "Kelas",
-      "Alamat",
-      "Rencana",
-      "Tipe Universitas",
-      "Nama Universitas",
-      "Jenjang",
-      "Jurusan",
-      "Bidang Usaha",
-      "Usaha yang Akan Dibuat",
-      "Jenis Usaha",
-      "Rencana Mulai Usaha",
-      "Alasan Berwirausaha",
-      "Perusahaan yang Dituju",
-      "Keterampilan yang Dimiliki",
-      "Jabatan yang Diinginkan",
-      "Bidang yang Diinginkan",
-      "Alasan Pekerjaan"
+      "No", "Nama", "NISN", "NIS", "Jenis Kelamin", "Kelas", "Alamat", "Rencana",
+      "Tipe Universitas", "Nama Universitas", "Jenjang", "Jurusan",
+      "Bidang Usaha", "Usaha yang Akan Dibuat", "Jenis Usaha", "Rencana Mulai Usaha", "Alasan Berwirausaha",
+      "Perusahaan", "Keterampilan", "Jabatan", "Bidang", "Alasan Pekerjaan"
     ];
 
-    // Buat array data untuk Excel
     const csvContent = [];
     csvContent.push(headers.join(","));
 
-    data.forEach((item, index) => {
+    dataLengkap.forEach((item, index) => {
       const row = [
         index + 1,
         item.nama || "-",
         item.nisn || "-",
-        // include school major and class
-        item.jurusanSekolah || item.jurusan || "-",
-        item.kelasSekolah || item.kelas || "-",
+        item.nis || "-",
+        item.jenisKelamin || "-",
+        item.kelasSekolah || "-",
         item.alamat || "-",
         item.tipe || "-",
         item.universitasType || "-",
@@ -571,7 +671,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       csvContent.push(row.map(cell => `"${cell}"`).join(","));
     });
 
-    // Buat Blob dan download
     const csvData = csvContent.join("\n");
     const blob = new Blob(["\ufeff" + csvData], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -593,7 +692,7 @@ window.addEventListener("DOMContentLoaded", async () => {
       reader.onload = async (evt) => {
         try {
           const text = evt.target.result;
-          const rows = parseCSV(text); // array of { header: value }
+          const rows = parseCSV(text);
           if (!rows.length) return alert('File CSV kosong atau tidak valid');
 
           let saved = 0;
@@ -610,25 +709,19 @@ window.addEventListener("DOMContentLoaded", async () => {
           }
           alert(`Import selesai. Berhasil: ${saved}, Gagal: ${failed}`);
           semuaData = await window.electronAPI.loadData();
-          tampilkanData(filterSelect.value, searchInput ? searchInput.value : "", filterJurusan ? filterJurusan.value : 'semua', filterKelas ? filterKelas.value : 'semua');
+          tampilkanData(filterSelect.value, searchInput ? searchInput.value : "", filterKelas.value);
         } catch (err) {
           console.error(err);
           alert('Terjadi kesalahan saat memproses file CSV');
         }
       };
       reader.readAsText(file, 'utf-8');
-      // reset input so same file can be chosen again
       importFileSiswa.value = '';
     });
   }
-
-  tampilkanData("semua", "", 'semua', 'semua');
 });
 
-
-// ==========================
-// LAPORAN ACARA (FIXED VERSION)
-// ==========================
+// =================== LAPORAN ACARA ===================
 window.addEventListener("DOMContentLoaded", async () => {
   const tambahBtn = document.getElementById("tambahBtn");
   const formArea = document.getElementById("formArea");
@@ -940,7 +1033,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   loadAcara();
 });
 
-
 // ==========================
 // FUNGSI TAMBAH DATA (SISWA)
 // ==========================
@@ -1116,7 +1208,6 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-
 // =================== HALAMAN TENTANG (FIXED) ===================
 document.addEventListener("DOMContentLoaded", () => {
   const pembuatBtn = document.getElementById("btnPembuat");
@@ -1139,346 +1230,215 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ===============================================================
-// ===================  KODE EDIT WORD DIMASUKKAN DI SINI  ========
-// ===============================================================
+// =================== EDIT FORM HANDLERS ===================
+window.addEventListener("DOMContentLoaded", () => {
+  const editForm = document.getElementById("editForm");
+  const editRencana = document.getElementById("editRencana");
+  const editKuliahFields = document.getElementById("editKuliahFields");
+  const editWirausahaFields = document.getElementById("editWirausahaFields");
+  const editKerjaFields = document.getElementById("editKerjaFields");
+  const btnUpdate = document.getElementById("btnUpdate");
+  const btnCancelEdit = document.getElementById("btnCancelEdit");
 
-const viewer = document.getElementById('viewer');
-const editor = document.getElementById('editor');
-const templateSelect = document.getElementById('templateSelect');
-const exportBtn = document.getElementById('exportBtn');
+  if (editRencana) {
+    editRencana.addEventListener("change", () => {
+      const selected = editRencana.value;
+      editKuliahFields.style.display = selected === "kuliah" ? "block" : "none";
+      editWirausahaFields.style.display = selected === "wirausaha" ? "block" : "none";
+      editKerjaFields.style.display = selected === "kerja" ? "block" : "none";
+    });
+  }
 
-let currentDocBase64 = null;
-let currentBinary = null;
-let currentZip = null;
+  if (btnUpdate) {
+    btnUpdate.addEventListener("click", () => {
+      const updatedData = {
+        nama: document.getElementById("editNama").value,
+        nisn: document.getElementById("editNisn").value,
+        nis: document.getElementById("editNis").value,
+        jenisKelamin: document.getElementById("editJenisKelamin").value,
+        kelasSekolah: document.getElementById("editKelas").value,
+        alamat: document.getElementById("editAlamat").value,
+        tipe: editRencana.value,
+        universitasType: document.getElementById("editUnivType")?.value || "",
+        universitas: document.getElementById("editUnivName")?.value || "",
+        jenjang: document.getElementById("editJenjang")?.value || "",
+        jurusan: document.getElementById("editJurusan")?.value || "",
+        bidangUsaha: document.getElementById("editBidangUsaha")?.value || "",
+        usahaDibuat: document.getElementById("editUsahaDibuat")?.value || "",
+        jenisUsaha: document.getElementById("editJenisUsaha")?.value || "",
+        rencanaMulai: document.getElementById("editRencanaMulai")?.value || "",
+        perusahaan: document.getElementById("editPerusahaan")?.value || "",
+        keterampilan: document.getElementById("editKeterampilan")?.value || "",
+        jabatan: document.getElementById("editJabatan")?.value || "",
+        bidang: document.getElementById("editBidang")?.value || "",
+      };
 
-// Fungsi ambil placeholder {{nama}}
-function extractPlaceholders(text) {
-  const regex = /{{(.*?)}}/g;
-  const found = [...text.matchAll(regex)].map(m => m[1].trim());
-  return [...new Set(found)];
-}
+      console.log("Data yang diperbarui:", updatedData);
+      showNotification("success", "Data berhasil diperbarui!");
+      editForm.style.display = "none";
+      mainContent.style.display = "block";
+    });
+  }
 
-// Jika halaman editWord.html punya elemen-elemen ini, jalankan
-if (templateSelect && viewer && editor) {
+  if (btnCancelEdit) {
+    btnCancelEdit.addEventListener("click", () => {
+      editForm.style.display = "none";
+      mainContent.style.display = "block";
+    });
+  }
+});
 
-  templateSelect.addEventListener('change', async () => {
-    const type = templateSelect.value;
-    
-    if (!type) {
-      viewer.innerHTML = '<p style="color: #999; text-align: center; padding: 30px;">📄 Pilih template untuk melihat isinya</p>';
-      editor.innerHTML = '';
-      viewer.style.display = 'none';
-      editor.style.display = 'none';
+// =================== TAMBAH DATA HANDLERS ===================
+window.addEventListener("DOMContentLoaded", () => {
+  const pilihKelas = document.getElementById("pilihKelas");
+  const pilihSiswa = document.getElementById("pilihSiswa");
+
+  if (pilihKelas && pilihSiswa) {
+    pilihKelas.addEventListener("change", async () => {
+      const kelas = pilihKelas.value;
+
+      if (kelas) {
+        pilihSiswa.disabled = false;
+        pilihSiswa.innerHTML = "<option value=''>-- Memuat data siswa --</option>";
+
+        try {
+          // Simulasi pengambilan data siswa berdasarkan kelas
+          const siswaData = await window.electronAPI.getSiswaByKelas(kelas);
+
+          pilihSiswa.innerHTML = siswaData
+            .map((siswa) => `<option value="${siswa.nis}">${siswa.nama}</option>`)
+            .join("");
+        } catch (error) {
+          console.error("Gagal memuat data siswa:", error);
+          pilihSiswa.innerHTML = "<option value=''>-- Gagal memuat data siswa --</option>";
+        }
+      } else {
+        pilihSiswa.disabled = true;
+        pilihSiswa.innerHTML = "<option value=''>-- Pilih Kelas terlebih dahulu --</option>";
+      }
+    });
+  }
+});
+
+// =====================
+// EDIT WORD (FINAL FIX)
+// =====================
+window.addEventListener('DOMContentLoaded', async () => {
+  const templateSelect = document.getElementById('templateSelect');
+  const btnGenerate = document.getElementById('btnGenerate');
+  const previewPdf = document.getElementById('previewPdf');
+  const previewPlaceholder = document.getElementById('previewPlaceholder');
+  const pdfError = document.getElementById('pdfError');
+  const placeholdersContainer = document.getElementById('placeholdersContainer');
+  const noPlaceholders = document.getElementById('noPlaceholders');
+
+  if (!templateSelect) return;
+
+  let selectedDocxPath = null;
+
+  console.log('🚀 editWord initialized');
+
+  // ===== LOAD TEMPLATES =====
+  try {
+    const documents = await window.electronAPI.getAvailableDocuments();
+
+    templateSelect.innerHTML = '<option value="">📋 Pilih Template...</option>';
+
+    if (!documents.length) {
+      templateSelect.innerHTML += '<option value="">(Tidak ada template)</option>';
       return;
     }
 
-    try {
-      // Show loading state
-      viewer.innerHTML = '<p style="color: #0061c1; text-align: center; padding: 30px;"><strong>⏳ Loading template...</strong></p>';
-      editor.innerHTML = '<p style="color: #0061c1; text-align: center; padding: 30px;"><strong>⏳ Memproses...</strong></p>';
-      viewer.style.display = 'block';
-      editor.style.display = 'block';
-
-      // Ambil file template docx dalam bentuk base64
-      const result = await window.electronAPI.loadTemplate(type);
-      
-      // Check if result is error
-      if (result && result.error) {
-        throw new Error(result.error);
-      }
-      
-      if (!result) {
-        throw new Error('Tidak ada response dari server');
-      }
-
-      currentDocBase64 = result;
-      
-      // Convert base64 ke ArrayBuffer untuk JSZip 3.0
-      let arrayBuffer;
-      try {
-        const binaryString = atob(result);
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        arrayBuffer = bytes.buffer;
-      } catch (e) {
-        throw new Error('Format file tidak valid (decode error): ' + e.message);
-      }
-      
-      currentBinary = arrayBuffer;
-
-      // Extract XML dari zip menggunakan JSZip 3.0 yang benar
-      let zip;
-      try {
-        // Gunakan JSZip langsung (bukan PizZip) untuk JSZip 3.0
-        if (typeof JSZip === 'undefined') {
-          throw new Error('JSZip library tidak tersedia');
-        }
-        zip = new JSZip();
-        zip = await zip.loadAsync(arrayBuffer);
-        currentZip = zip;
-      } catch (e) {
-        throw new Error('Gagal membuka file Word: ' + e.message);
-      }
-
-      let xml;
-      try {
-        const xmlFile = zip.file("word/document.xml");
-        if (!xmlFile) {
-          throw new Error('File word/document.xml tidak ditemukan dalam dokumen');
-        }
-        xml = await xmlFile.async("text");
-      } catch (e) {
-        throw new Error('Gagal membaca isi dokumen: ' + e.message);
-      }
-
-      // Render dokumen ke viewer menggunakan docx-preview
-      try {
-        viewer.innerHTML = '<p style="text-align: center; padding: 20px; color: #666;">⏳ Rendering dokumen...</p>';
-        
-        let previewRendered = false;
-        
-        // Coba load docx-preview dari CDN
-        try {
-          const module = await import('https://cdn.jsdelivr.net/npm/docx-preview@0.3.7/build/index.js');
-          if (module && module.renderAsync) {
-            const blob = new Blob([new Uint8Array(arrayBuffer)], { 
-              type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
-            });
-            
-            viewer.innerHTML = '';
-            await module.renderAsync(blob, viewer);
-            
-            viewer.style.backgroundColor = 'white';
-            viewer.style.padding = '30px';
-            viewer.style.overflowY = 'auto';
-            viewer.style.borderRadius = '8px';
-            
-            previewRendered = true;
-          }
-        } catch (cdnError) {
-          console.warn('CDN docx-preview failed:', cdnError.message);
-        }
-        
-        // Jika CDN gagal, tampilkan ekstrak teks dari dokumen
-        if (!previewRendered) {
-          // Extract teks dari XML dokumen
-          const textContent = xml
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>')
-            .replace(/&amp;/g, '&')
-            .replace(/\s+/g, ' ')
-            .trim();
-          
-          const displayText = textContent.substring(0, 2000);
-          
-          viewer.innerHTML = `<div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
-            <div style="color: #666; font-size: 12px; margin-bottom: 15px; padding: 10px; background: #e7f3ff; border-left: 3px solid #0061c1; border-radius: 4px;">
-              📄 <strong>Konten Dokumen Word:</strong><br>
-              <small>Preview dokumen ditampilkan dalam format teks. Dokumen asli memiliki formatting lengkap.</small>
-            </div>
-            <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 13px; line-height: 1.6; color: #333; font-family: 'Segoe UI', 'Poppins', sans-serif; margin: 0;">${displayText}</pre>
-          </div>`;
-          
-          viewer.style.backgroundColor = 'white';
-          viewer.style.padding = '20px';
-          viewer.style.overflowY = 'auto';
-          viewer.style.borderRadius = '8px';
-        }
-        
-      } catch (e) {
-        console.error('Viewer rendering failed:', e);
-        viewer.innerHTML = `<div style="padding: 20px; color: #d9534f; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; text-align: center;">
-          <strong style="font-size: 16px;">⚠️ Gagal Membaca Dokumen</strong><br>
-          <small style="display: block; margin-top: 10px; color: #666;">${e.message}</small>
-        </div>`;
-      }
-
-      // Ambil semua placeholder
-      const keys = extractPlaceholders(xml);
-
-      if (keys.length === 0) {
-        editor.innerHTML = '<p style="color: #d9534f; text-align: center; padding: 20px;"><strong>⚠️ Tidak ada placeholder ditemukan</strong><br><small>Format yang benar: {{namaVariabel}}</small></p>';
-        exportBtn.style.display = 'none';
-        return;
-      }
-
-      editor.innerHTML = '';
-      exportBtn.style.display = 'block';
-
-      // Fungsi untuk update preview real-time
-      async function updatePreviewRealTime() {
-        try {
-          const zip2 = new JSZip();
-          await zip2.loadAsync(arrayBuffer);
-          let xml2 = await (await zip2.file("word/document.xml")).async("text");
-
-          // Replace semua placeholder dengan nilai dari form
-          keys.forEach(k => {
-            const safeId = `pl-${k.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-            const inputEl = document.getElementById(safeId);
-            const value = inputEl ? inputEl.value : '';
-            
-            // Replace dengan berbagai format
-            xml2 = xml2.replaceAll(`{{${k}}}`, value);
-            xml2 = xml2.replaceAll(`{{ ${k} }}`, value);
-            xml2 = xml2.replaceAll(`{{${k.toUpperCase()}}}`, value);
-          });
-
-          zip2.file("word/document.xml", xml2);
-          const previewBlob = await zip2.generateAsync({ type: 'blob' });
-
-          // Render preview dokumen dengan full formatting
-          let previewRendered = false;
-          
-          try {
-            const module = await import('https://cdn.jsdelivr.net/npm/docx-preview@0.3.7/build/index.js');
-            if (module && module.renderAsync) {
-              viewer.innerHTML = '';
-              await module.renderAsync(previewBlob, viewer);
-              viewer.style.backgroundColor = 'white';
-              viewer.style.padding = '30px';
-              viewer.style.overflowY = 'auto';
-              viewer.style.borderRadius = '8px';
-              previewRendered = true;
-            }
-          } catch (cdnError) {
-            console.warn('CDN preview update failed:', cdnError.message);
-          }
-          
-          // Fallback ke teks jika docx-preview gagal
-          if (!previewRendered) {
-            const textContent = xml2
-              .replace(/<[^>]+>/g, ' ')
-              .replace(/&lt;/g, '<')
-              .replace(/&gt;/g, '>')
-              .replace(/&amp;/g, '&')
-              .replace(/\s+/g, ' ')
-              .trim();
-            
-            const displayText = textContent.substring(0, 2000);
-            
-            viewer.innerHTML = `<div style="padding: 20px; background: #f8f9fa; border-radius: 8px;">
-              <div style="color: #666; font-size: 12px; margin-bottom: 15px; padding: 10px; background: #e7f3ff; border-left: 3px solid #0061c1; border-radius: 4px;">
-                📄 <strong>Hasil Edit (Pratinjau Teks):</strong>
-              </div>
-              <pre style="white-space: pre-wrap; word-wrap: break-word; font-size: 13px; line-height: 1.6; color: #333; font-family: 'Segoe UI', 'Poppins', sans-serif; margin: 0;">${displayText}</pre>
-            </div>`;
-            
-            viewer.style.backgroundColor = 'white';
-            viewer.style.padding = '20px';
-            viewer.style.overflowY = 'auto';
-            viewer.style.borderRadius = '8px';
-          }
-        } catch (e) {
-          console.error('Preview update error:', e);
-        }
-      }
-
-      // Buat input untuk semua placeholder
-      keys.forEach(k => {
-        const row = document.createElement('div');
-        row.style.marginBottom = '15px';
-        
-        // Tentukan tipe input berdasarkan nama placeholder
-        const isLongField = k.toLowerCase().includes('deskripsi') || 
-                           k.toLowerCase().includes('keterangan') ||
-                           k.toLowerCase().includes('isi') ||
-                           k.toLowerCase().includes('catatan') ||
-                           k.length > 25;
-        
-        let inputHtml;
-        if (isLongField) {
-          inputHtml = `
-            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #0061c1; font-size: 14px;">${k}:</label>
-            <textarea id="pl-${k.replace(/[^a-zA-Z0-9_-]/g, '_')}" placeholder="Isi nilai untuk ${k}" style="width: 100%; padding: 10px; border: 1px solid #bcd3ff; border-radius: 6px; font-size: 13px; min-height: 80px; font-family: 'Poppins', sans-serif; resize: vertical;"></textarea>
-          `;
-        } else {
-          inputHtml = `
-            <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #0061c1; font-size: 14px;">${k}:</label>
-            <input type="text" id="pl-${k.replace(/[^a-zA-Z0-9_-]/g, '_')}" placeholder="Isi nilai untuk ${k}" style="width: 100%; padding: 10px; border: 1px solid #bcd3ff; border-radius: 6px; font-size: 13px; font-family: 'Poppins', sans-serif;" />
-          `;
-        }
-        
-        row.innerHTML = inputHtml;
-        editor.appendChild(row);
-
-        // Tambah event listener untuk update preview real-time saat input berubah
-        const inputEl = editor.querySelector(`#pl-${k.replace(/[^a-zA-Z0-9_-]/g, '_')}`);
-        if (inputEl) {
-          inputEl.addEventListener('input', () => {
-            // Debounce: tunggu 500ms setelah user berhenti mengetik
-            clearTimeout(inputEl.debounceTimer);
-            inputEl.debounceTimer = setTimeout(updatePreviewRealTime, 500);
-          });
-        }
+    // Filter hanya yang memiliki PDF
+    documents
+      .filter(doc => doc.hasPdf)
+      .forEach(doc => {
+        const option = document.createElement('option');
+        option.value = doc.docxPath; // DOCX tetap sebagai value
+        option.textContent = `📄 ${doc.displayName}`;
+        option.dataset.pdf = doc.pdfPath;
+        option.dataset.base = doc.baseName;
+        templateSelect.appendChild(option);
       });
 
-      // Tombol export
-      exportBtn.onclick = async () => {
-        try {
-          exportBtn.disabled = true;
-          exportBtn.textContent = '⏳ Menyimpan...';
-          
-          // Load ulang zip untuk edit
-          const zip2 = new JSZip();
-          await zip2.loadAsync(arrayBuffer);
-          let xml2 = await (await zip2.file("word/document.xml")).async("text");
+  } catch (err) {
+    console.error('❌ Gagal load template:', err);
+  }
 
-          // Replace semua placeholder
-          keys.forEach(k => {
-            const safeId = `pl-${k.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-            const inputEl = document.getElementById(safeId);
-            const value = inputEl ? inputEl.value : '';
-            
-            // Replace dengan berbagai format
-            xml2 = xml2.replaceAll(`{{${k}}}`, value);
-            xml2 = xml2.replaceAll(`{{ ${k} }}`, value);
-            xml2 = xml2.replaceAll(`{{${k.toUpperCase()}}}`, value);
-          });
+  // ===== TEMPLATE CHANGE =====
+  templateSelect.addEventListener('change', async (e) => {
+    const docxPath = e.target.value;
+    if (!docxPath) return;
 
-          zip2.file("word/document.xml", xml2);
-          const out = await zip2.generateAsync({ type: 'base64' });
+    selectedDocxPath = docxPath;
 
-          const result = await window.electronAPI.exportTemplate({
-            base64: out,
-            filename: `edited_${Date.now()}.docx`
-          });
+    // Gunakan PDF path dari dataset atau buat default
+    const selectedOption = e.target.selectedOptions[0];
+    const pdfPath = selectedOption.dataset.pdf || 
+                    docxPath.replace('Templates', 'View').replace('.docx', '.pdf');
 
-          if (result.success) {
-            alert('✅ ' + result.message);
-            // Reset form dan preview
-            keys.forEach(k => {
-              const safeId = `pl-${k.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
-              const inputEl = document.getElementById(safeId);
-              if (inputEl) inputEl.value = '';
-            });
-            // Update preview kembali ke original
-            await updatePreviewRealTime();
-          } else {
-            alert('❌ ' + (result.error || 'Gagal menyimpan file'));
-          }
-          
-          exportBtn.textContent = '💾 Simpan Hasil Edit';
-          exportBtn.disabled = false;
-        } catch (error) {
-          alert('❌ Error saat export: ' + error.message);
-          console.error('Export error:', error);
-          exportBtn.textContent = '💾 Simpan Hasil Edit';
-          exportBtn.disabled = false;
-        }
-      };
-
-    } catch (error) {
-      console.error('Error loading template:', error);
-      viewer.innerHTML = `<p style="color: #d9534f; padding: 20px;"><strong>❌ Error:</strong> ${error.message}</p>`;
-      editor.innerHTML = '';
-      exportBtn.style.display = 'none';
-    }
+    await loadPdfPreview(pdfPath);
+    await loadPlaceholdersFromDocx(docxPath);
   });
 
-}
+  // ===== PDF PREVIEW =====
+  async function loadPdfPreview(pdfPath) {
+    previewPdf.style.display = 'none';
+    previewPlaceholder.style.display = 'none';
+    pdfError.style.display = 'none';
+
+    const exists = await window.electronAPI.checkPdfExists(pdfPath);
+
+    if (!exists) {
+      pdfError.style.display = 'block';
+      return;
+    }
+
+    previewPdf.src = `${pdfPath}#toolbar=0&navpanes=0&scrollbar=0`;
+    previewPdf.style.display = 'block';
+  }
+
+  // ===== LOAD PLACEHOLDERS =====
+  async function loadPlaceholdersFromDocx(docxPath) {
+    placeholdersContainer.innerHTML = '';
+    noPlaceholders.style.display = 'none';
+
+    const placeholders = await window.electronAPI.extractPlaceholders(docxPath);
+
+    if (!placeholders || placeholders.length === 0) {
+      noPlaceholders.style.display = 'block';
+      return;
+    }
+
+    placeholders.forEach(ph => {
+      const wrap = document.createElement('div');
+      wrap.className = 'placeholder-form';
+
+      const label = document.createElement('label');
+      label.textContent = ph;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.dataset.placeholder = ph;
+
+      wrap.appendChild(label);
+      wrap.appendChild(input);
+      placeholdersContainer.appendChild(wrap);
+    });
+  }
+
+  // ===== EXPORT =====
+  btnGenerate.addEventListener('click', async () => {
+    if (!selectedDocxPath) {
+      alert('Pilih template terlebih dahulu');
+      return;
+    }
+
+    const data = {};
+    document.querySelectorAll('[data-placeholder]').forEach(el => {
+      data[el.dataset.placeholder] = el.value || '';
+    });
+
+    await window.electronAPI.saveDocument(selectedDocxPath, data);
+  });
+});

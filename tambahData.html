@@ -30,72 +30,79 @@
     </header>
 
     <div class="form-wrapper">
-  <br><br>
-  <div id="form1">
-    <h2>Form Data Siswa</h2>
-    <label for="jurusanSekolah">Pilih Jurusan Sekolah:</label><br>
-    <select id="jurusanSekolah">
-      <option value="RPL">RPL</option>
-      <option value="PH">PH</option>
-      <option value="MPLB">MPLB</option>
-      <option value="TO">TO</option>
-    </select><br><br>
+      <br><br>
+      
+      <!-- Form 1: Pilih Kelas dan Siswa -->
+      <div id="form1">
+        <h2>Form Data Siswa</h2>
+        
+        <label for="pilihKelas">Pilih Kelas:</label><br>
+        <select id="pilihKelas">
+          <option value="">-- Pilih Kelas --</option>
+          <option value="XII - RPL 1">XII - RPL 1</option>
+          <option value="XII - RPL 2">XII - RPL 2</option>
+          <option value="XII - TKR 1">XII - TKR 1</option>
+          <option value="XII - TKR 2">XII - TKR 2</option>
+          <option value="XII - TKR 3">XII - TKR 3</option>
+          <option value="XII - MPLB 1">XII - MPLB 1</option>
+          <option value="XII - MPLB 2">XII - MPLB 2</option>
+          <option value="XII - MPLB 3">XII - MPLB 3</option>
+          <option value="XII - PH 1">XII - PH 1</option>
+          <option value="XII - PH 2">XII - PH 2</option>
+          <option value="XII - PH 3">XII - PH 3</option>
+        </select><br><br>
 
-    <label for="kelasSekolah">Pilih Kelas:</label><br>
-    <select id="kelasSekolah">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-    </select><br><br>
-    <input type="text" id="nama" placeholder="Nama Lengkap"><br>
-    <input type="text" id="nisn" placeholder="NISN"><br>
-    <input type="text" id="alamat" placeholder="Alamat"><br>
-    <button id="next1">Selanjutnya</button>
-  </div>
+        <label for="pilihSiswa">Pilih Nama Siswa:</label><br>
+        <select id="pilihSiswa" disabled>
+          <option value="">-- Pilih Kelas terlebih dahulu --</option>
+        </select><br><br>
 
-  <!-- Form 2 -->
-  <div id="form2" style="display:none;">
-    <h2>Pilih Rencana</h2>
-    <button class="pilihan" data-type="kuliah">Kuliah</button>
-    <button class="pilihan" data-type="wirausaha">Wirausaha</button>
-    <button class="pilihan" data-type="kerja">Kerja</button>
-  </div>
+        <button id="next1">Selanjutnya</button>
+      </div>
 
-  <!-- Form Kuliah -->
-  <div id="kuliahForm" style="display:none;">
-    <h2>Form Kuliah</h2>
-    <label>Pilih Universitas:</label><br>
-    <select id="univType">
-      <option value="negeri">Negeri</option>
-      <option value="swasta">Swasta</option>
-    </select><br><br>
-    <input type="text" id="univName" placeholder="Universitas Pilihan"><br>
-    <input type="text" id="jurusan" placeholder="Jurusan"><br>
-    <input type="text" id="jenjang" placeholder="Jenjang"><br>
-    <button id="submitKuliah">Selesai</button>
-  </div>
+      <!-- Form 2: Pilih Rencana -->
+      <div id="form2" style="display:none;">
+        <h2>Pilih Rencana</h2>
+        <button class="pilihan" data-type="kuliah">Kuliah</button>
+        <button class="pilihan" data-type="wirausaha">Wirausaha</button>
+        <button class="pilihan" data-type="kerja">Kerja</button>
+      </div>
 
-  <!-- Form Wirausaha -->
-  <div id="wirausahaForm" style="display:none;">
-    <h2>Form Wirausaha</h2>
-    <input type="text" id="bidangUsaha" placeholder="Bidang Usaha"><br>
-    <input type="text" id="usahaDibuat" placeholder="Usaha yang Akan Dibuat"><br>
-    <input type="text" id="jenisUsaha" placeholder="Jenis Usaha"><br>
-    <input type="text" id="rencanaMulai" placeholder="Rencana Mulai Usaha"><br>
-    <input type="text" id="alasanWirausaha" placeholder="Alasan Berwirausaha"><br>
-    <button id="submitWirausaha">Selesai</button>
-  </div>
+      <!-- Form Kuliah -->
+      <div id="kuliahForm" style="display:none;">
+        <h2>Form Kuliah</h2>
+        <label>Pilih Universitas:</label><br>
+        <select id="univType">
+          <option value="negeri">Negeri</option>
+          <option value="swasta">Swasta</option>
+        </select><br><br>
+        <input type="text" id="univName" placeholder="Universitas Pilihan"><br>
+        <input type="text" id="jurusan" placeholder="Jurusan"><br>
+        <input type="text" id="jenjang" placeholder="Jenjang"><br>
+        <button id="submitKuliah">Selesai</button>
+      </div>
 
-  <!-- Form Kerja -->
-  <div id="kerjaForm" style="display:none;">
-    <h2>Form Kerja</h2>
-    <input type="text" id="perusahaan" placeholder="Perusahaan"><br>
-    <input type="text" id="keterampilan" placeholder="Keterampilan yang Dimiliki"><br>
-    <input type="text" id="jabatan" placeholder="Jabatan yang Diinginkan"><br>
-    <input type="text" id="bidang" placeholder="Bidang yang Diinginkan"><br>
-    <input type="text" id="alasanKerja" placeholder="Alasan"><br>
-    <button id="submitKerja">Selesai</button>
-  </div>
+      <!-- Form Wirausaha -->
+      <div id="wirausahaForm" style="display:none;">
+        <h2>Form Wirausaha</h2>
+        <input type="text" id="bidangUsaha" placeholder="Bidang Usaha"><br>
+        <input type="text" id="usahaDibuat" placeholder="Usaha yang Akan Dibuat"><br>
+        <input type="text" id="jenisUsaha" placeholder="Jenis Usaha"><br>
+        <input type="text" id="rencanaMulai" placeholder="Rencana Mulai Usaha"><br>
+        <input type="text" id="alasanWirausaha" placeholder="Alasan Berwirausaha"><br>
+        <button id="submitWirausaha">Selesai</button>
+      </div>
+
+      <!-- Form Kerja -->
+      <div id="kerjaForm" style="display:none;">
+        <h2>Form Kerja</h2>
+        <input type="text" id="perusahaan" placeholder="Perusahaan"><br>
+        <input type="text" id="keterampilan" placeholder="Keterampilan yang Dimiliki"><br>
+        <input type="text" id="jabatan" placeholder="Jabatan yang Diinginkan"><br>
+        <input type="text" id="bidang" placeholder="Bidang yang Diinginkan"><br>
+        <input type="text" id="alasanKerja" placeholder="Alasan"><br>
+        <button id="submitKerja">Selesai</button>
+      </div>
 
     </div>
 
